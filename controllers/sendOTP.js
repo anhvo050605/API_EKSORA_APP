@@ -2,7 +2,7 @@ require('dotenv').config();
 const User = require('../schema/userSchema');
 const sendEmail = require('../utils/sendEmail');
 
-const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
+const generateOTP = () => Math.floor(1000 + Math.random() * 9000).toString();
 
 
 const sendOTP = async (req, res) => {
