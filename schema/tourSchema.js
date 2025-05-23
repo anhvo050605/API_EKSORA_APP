@@ -6,6 +6,7 @@ const tourSchema = new mongoose.Schema({
   price: { type: Number, required: true },
   image: { type: String },
   cateID: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
+  supplier_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Supplier' },
   created_at: { type: Date, default: Date.now }
 });
 
