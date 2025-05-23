@@ -14,7 +14,7 @@ const userRoutes = require('./routes/userRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const tourRoutes = require('./routes/tourRoutes');
 const supplierRoutes = require('./routes/supplierRoutes');
-
+const bannerRoutes = require('./routes/bannerRoutes');
 
 
 //============================================================================================================
@@ -45,6 +45,8 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api', tourRoutes);
 
 app.use('/api/suppliers', supplierRoutes);
+
+app.use('/api', bannerRoutes);
 
 
 
