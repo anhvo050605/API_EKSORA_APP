@@ -7,6 +7,7 @@ const tourSchema = new mongoose.Schema({
   image: { type: String },
   cateID: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
   supplier_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Supplier' },
+  province: { type: String, required: true },
   created_at: { type: Date, default: Date.now }
 });
 

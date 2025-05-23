@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Tour = require('../schema/tourSchema');
+const HighlightPlace = require("../schema/highlightPlaceSchema");
 // Lấy tất cả tour
 const getAllTours = async (req, res) => {
   try {
@@ -31,23 +32,57 @@ const createTour = async (req, res) => {
   }
 };
 //Chi tiết tour
+// const getTourDetail = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+
+//     if (!mongoose.Types.ObjectId.isValid(id)) {
+//       return res.status(400).json({ message: "ID không hợp lệ" });
+//     }
+
+//     const tour = await Tour.findById(id)
+//       .populate('cateID')
+//       .populate('supplier_id');
+
+//     if (!tour) {
+//       return res.status(404).json({ message: "Không tìm thấy tour" });
+//     }
+
+//     res.status(200).json(tour);
+//   } catch (err) {
+//     console.error("Lỗi khi lấy chi tiết tour:", err);
+//     res.status(500).json({ message: "Lỗi máy chủ" });
+//   }
+// };
+
 const getTourDetail = async (req, res) => {
   try {
     const { id } = req.params;
 
+    
+
+    // Kiểm tra ID hợp lệ
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: "ID không hợp lệ" });
     }
 
+    // Tìm tour, populate danh mục & nhà cung cấp
     const tour = await Tour.findById(id)
-      .populate('cateID')
-      .populate('supplier_id');
+      .populate("cateID")
+      .populate("supplier_id");
 
     if (!tour) {
       return res.status(404).json({ message: "Không tìm thấy tour" });
     }
 
-    res.status(200).json(tour);
+    // Lấy danh sách địa điểm nổi bật theo location của tour
+    const highlights = await HighlightPlace.find({ province: tour.location });
+
+    // Trả về tour kèm theo địa điểm nổi bật
+    res.status(200).json({
+      tour,
+      highlights,
+    });
   } catch (err) {
     console.error("Lỗi khi lấy chi tiết tour:", err);
     res.status(500).json({ message: "Lỗi máy chủ" });
