@@ -18,6 +18,7 @@ const bannerRoutes = require('./routes/bannerRoutes');
 const optionRoutes = require('./routes/optionServiceRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const highlightPlaceRouter = require('./routes/highlightPlaceRouter');
+const bookingRoutes = require('./routes/bookingRoutes');
 
 
 //============================================================================================================
@@ -56,6 +57,8 @@ app.use('/api/options', optionRoutes);
 app.use('/api', reviewRoutes);
 
 app.use('/api/highlights', highlightPlaceRouter);
+
+app.use('/api/bookings', bookingRoutes);
 
 
 

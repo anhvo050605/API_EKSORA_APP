@@ -1,0 +1,73 @@
+const Booking = require('../schema/bookingSchema');
+//Tao booking mới
+exports.createBooking = async (req, res) => {
+  try {
+    const {
+      user_id,
+      tour_id,
+      travel_date,
+      quantity_nguoiLon,
+      quantity_treEm,
+      totalPrice
+    } = req.body;
+
+    const newBooking = new Booking({
+      user_id,
+      tour_id,
+      travel_date,
+      quantity_nguoiLon,
+      quantity_treEm,
+      totalPrice
+    });
+
+    await newBooking.save();
+    res.status(201).json({ message: 'Đặt tour thành công', booking: newBooking });
+  } catch (error) {
+    console.error('Lỗi khi đặt tour:', error);
+    res.status(500).json({ message: 'Lỗi máy chủ khi đặt tour' });
+  }
+};
+//Lây danh sách booking của người dùng
+exports.getBookingsByUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const bookings = await Booking.find({ user_id: userId }).populate('tour_id');
+    res.status(200).json(bookings);
+  } catch (error) {
+    res.status(500).json({ message: 'Lỗi khi lấy danh sách booking' });
+  }
+};
+// Lấy chi tiết booking
+exports.getBookingDetail = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id).populate('tour_id user_id');
+    if (!booking) {
+      return res.status(404).json({ message: 'Không tìm thấy booking' });
+    }
+    res.status(200).json(booking);
+  } catch (error) {
+    res.status(500).json({ message: 'Lỗi máy chủ khi lấy booking' });
+  }
+};
+// Cập nhật trạng thái booking
+exports.updateBookingStatus = async (req, res) => {
+  try {
+    const updated = await Booking.findByIdAndUpdate(
+      req.params.id,
+      { status: req.body.status },
+      { new: true }
+    );
+    res.status(200).json(updated);
+  } catch (error) {
+    res.status(500).json({ message: 'Lỗi khi cập nhật trạng thái' });
+  }
+};
+// Huỷ booking
+exports.deleteBooking = async (req, res) => {
+  try {
+    await Booking.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: 'Đã huỷ booking' });
+  } catch (error) {
+    res.status(500).json({ message: 'Lỗi khi xoá booking' });
+  }
+};
