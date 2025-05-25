@@ -1,5 +1,8 @@
 const User = require('../schema/userSchema');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+
+const SECRET_KEY = 'EKSORA';
 
 const loginWithPhone = async (req, res) => {
   try {
@@ -24,10 +27,15 @@ const loginWithPhone = async (req, res) => {
       return res.status(401).json({ message: 'Số điện thoại hoặc mật khẩu không đúng' });
     }
 
-    const { password: _, ...userData } = user.toObject();
+    const token = jwt.sign(
+      { userId: user._id, phone: user.phone, role: user.role },
+      SECRET_KEY,
+      { expiresIn: '1h' }
+    );
 
     res.status(200).json({
-      message: 'Đăng nhập thành công!'
+      message: 'Đăng nhập thành công!',
+      token
     });
 
   } catch (error) {
