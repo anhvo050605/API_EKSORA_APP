@@ -5,14 +5,15 @@ const loginWithEmail = require('../controllers/loginUserwithEmail');
 const loginWithPhone = require('../controllers/loginUserwithPhone');
 const sendOTP = require('../controllers/sendOTP'); 
 const verifyOTP = require('../controllers/verifyOTP');
-const updatePassword = require('../controllers/updatePassword'); 
+const updatePasswordWithToken = require('../controllers/updatePassword');
+const verifyToken = require('../middleware/verifyToken');
 
 router.post('/register', registerUser);
 router.post('/login-email', loginWithEmail);
 router.post('/login-phone', loginWithPhone);
 router.post('/send-otp', sendOTP);
 router.post('/verify-otp', verifyOTP);
-router.post('/update-password', updatePassword);
+router.post('/update-password',verifyToken, updatePasswordWithToken);
 
 
 module.exports = router;

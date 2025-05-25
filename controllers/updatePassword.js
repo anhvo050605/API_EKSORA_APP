@@ -1,38 +1,40 @@
 const bcrypt = require('bcryptjs');
 const User = require('../schema/userSchema');
 
-const updatePassword = async (req, res) => {
+const updatePasswordWithToken = async (req, res) => {
   try {
-    const { input, newPassword } = req.body;
+    const { currentPassword, newPassword } = req.body;
 
-    if (!input || !newPassword) {
-      return res.status(400).json({ message: 'Thiếu thông tin cần thiết' });
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Thiếu mật khẩu hiện tại hoặc mật khẩu mới' });
     }
 
-    const user = await User.findOne({
-      $or: [{ email: input }, { phone: input }]
-    });
-
-    if (!user || !user.otp || !user.otpExpiry || user.otpExpiry < Date.now()) {
-      return res.status(400).json({ message: 'Vui lòng xác thực OTP trước khi đổi mật khẩu' });
+    // Lấy user từ token (được giải mã bởi middleware verifyToken)
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Không tìm thấy người dùng' });
     }
 
-    // Mã hóa mật khẩu mới
+    // So sánh mật khẩu hiện tại
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Mật khẩu hiện tại không đúng' });
+    }
+
+    // Hash và cập nhật mật khẩu mới
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
 
-    // Xoá OTP sau khi đổi mật khẩu
-    user.otp = undefined;
+     user.otp = undefined;
     user.otpExpiry = undefined;
-
     await user.save();
 
     res.status(200).json({ message: 'Đổi mật khẩu thành công' });
-
   } catch (error) {
     console.error('Lỗi đổi mật khẩu:', error);
-    res.status(500).json({ message: 'Lỗi đổi mật khẩu' });
+    res.status(500).json({ message: 'Lỗi máy chủ khi đổi mật khẩu' });
   }
 };
 
-module.exports = updatePassword;
+module.exports =  updatePasswordWithToken ;
+
