@@ -24,6 +24,9 @@ const favoriteRoutes = require('./routes/favoriteRoutes');
 
 
 
+
+
+
 //============================================================================================================
 var app = express();
 
@@ -45,8 +48,6 @@ mongoose.connect('mongodb+srv://anhvo050605a:voanh050605@cluster0.4orqa.mongodb.
 //===================================================================================================
 app.use('/api', authRoutes);
 
-app.use('/api', userRoutes);
-
 app.use('/api/categories', categoryRoutes);
 
 app.use('/api', tourRoutes);
@@ -66,6 +67,8 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/vouchers', voucherRoutes);
 
 app.use('/api/favorites', favoriteRoutes);
+
+app.use('/api', userRoutes);
 
 
 

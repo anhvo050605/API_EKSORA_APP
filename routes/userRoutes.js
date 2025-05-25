@@ -1,15 +1,12 @@
+// routes/userRoutes.js
 const express = require('express');
 const router = express.Router();
-const User = require('../schema/userSchema');
+const userController = require('../controllers/userController');
+const verifyToken = require('../middleware/verifyToken');
 
-// Lấy tất cả người dùng
-router.get('/users', async (req, res) => {
-  try {
-    const users = await User.find();
-    res.json({ success: true, data: users });
-  } catch (err) {
-    res.status(500).json({ success: false, message: 'Lỗi server' });
-  }
-});
+// Lấy thông tin user từ JWT token
+router.get('/profile', verifyToken, userController.getProfile);
+// Cập nhật thông tin user
+router.put('/profile', verifyToken, userController.updateProfile);
 
 module.exports = router;
