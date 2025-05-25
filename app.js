@@ -20,6 +20,8 @@ const reviewRoutes = require('./routes/reviewRoutes');
 const highlightPlaceRouter = require('./routes/highlightPlaceRouter');
 const bookingRoutes = require('./routes/bookingRoutes');
 const voucherRoutes = require('./routes/voucherRoutes');
+const favoriteRoutes = require('./routes/favoriteRoutes');
+
 
 
 //============================================================================================================
@@ -63,6 +65,7 @@ app.use('/api/bookings', bookingRoutes);
 
 app.use('/api/vouchers', voucherRoutes);
 
+app.use('/api/favorites', favoriteRoutes);
 
 
 
