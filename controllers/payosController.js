@@ -1,5 +1,5 @@
 const axios = require('axios');
-const Payment = require('../models/Payment');
+const Payment = require('../schema/paymentSchema');
 require('dotenv').config();
 
 const apiUrl = 'https://api.payos.vn/v1/payment-requests';
