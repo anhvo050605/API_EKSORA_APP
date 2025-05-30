@@ -1,82 +1,53 @@
 const axios = require('axios');
-const Payment = require('../schema/paymentSchema');
+const { v4: uuidv4 } = require('uuid');
+const Payment = require('../schema/paymentSchema'); // Assuming you have a payment schema defined
+
 require('dotenv').config();
 
-const apiUrl = 'https://api.payos.vn/v1/payment-requests';
-const { CLIENT_ID, API_KEY, CHECKSUM_KEY, RETURN_URL, WEBHOOK_URL } = process.env;
+const createPayment = async (req, res) => {
+  try {
+    const { booking_id, amount, return_url } = req.body;
 
-const crypto = require('crypto');
+    const payment_id = uuidv4(); // Unique payment ID
 
-function signData(data) {
-    const rawData = JSON.stringify(data);
-    return crypto.createHmac('sha256', CHECKSUM_KEY).update(rawData).digest('hex');
-}
+    // Gửi yêu cầu đến SePay
+    const sepayRes = await axios.post(process.env.SEPAY_ENDPOINT, {
+      merchant_id: process.env.SEPAY_MERCHANT_ID,
+      api_key: process.env.SEPAY_API_KEY,
+      order_id: payment_id,
+      amount,
+      description: `Thanh toán đơn hàng #${booking_id}`,
+      return_url,
+    });
 
-exports.createPayment = async (req, res) => {
-    try {
-        const { amount } = req.body;
-        const orderCode = Math.floor(Math.random() * 1000000000);
+    const { payment_url, transaction_id, response_code } = sepayRes.data;
 
-        const body = {
-            orderCode,
-            amount,
-            description: 'Thanh toán đơn hàng PayOS',
-            returnUrl: RETURN_URL,
-            cancelUrl: RETURN_URL,
-            webhookUrl: WEBHOOK_URL,
-        };
+    // Lưu vào MongoDB
+    const payment = new Payment({
+      payment_id,
+      booking_id,
+      sepay_transaction_id: transaction_id || null,
+      amount,
+      currency: 'VND',
+      payment_method_gateway: 'SePay',
+      status: 'pending',
+      gateway_response_code: response_code || null,
+      payment_url: payment_url || null
+    });
 
-        const signature = signData(body);
+    await payment.save();
 
-        const response = await axios.post(apiUrl, body, {
-            headers: {
-                'Content-Type': 'application/json',
-                'x-client-id': CLIENT_ID,
-                'x-api-key': API_KEY,
-                'x-signature': signature,
-            },
-        });
-
-        const payment = new Payment({
-            orderCode,
-            amount,
-            status: 'PENDING',
-            checkoutUrl: response.data.checkoutUrl,
-        });
-
-        await payment.save();
-
-        res.json({
-            message: 'Tạo thanh toán thành công',
-            checkoutUrl: response.data.checkoutUrl,
-        });
-    } catch (error) {
-        if (error.response) {
-            console.error('PayOS API Error:', error.response.status, error.response.data);
-        } else {
-            console.error('Unexpected Error:', error.message);
-        }
-        res.status(500).json({ message: 'Lỗi tạo thanh toán PayOS' });
-    }
+    res.status(200).json({
+      message: 'Tạo thanh toán thành công',
+      payment_url,
+      payment_id
+    });
+  } catch (error) {
+    console.error('SePay Error:', error?.response?.data || error.message);
+    res.status(500).json({ message: 'Lỗi tạo thanh toán với SePay' });
+  }
 };
 
-exports.handleWebhook = async (req, res) => {
-    try {
-        const data = req.body;
-        const orderCode = data.orderCode;
-        const transactionId = data.transactionId;
-        const status = data.status;
-
-        const payment = await Payment.findOne({ orderCode });
-        if (!payment) return res.status(404).send('Order not found');
-
-        payment.status = status === 'PAID' ? 'SUCCESS' : 'FAILED';
-        payment.transactionId = transactionId;
-        await payment.save();
-
-        res.status(200).send('Webhook received');
-    } catch (error) {
-        console.error('Lỗi webhook:', error.message);
-        res.status(500).send('Webhook error');
-    }
+module.exports = {
+  createPayment
 };

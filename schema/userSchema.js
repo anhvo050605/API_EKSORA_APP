@@ -7,9 +7,18 @@ const userSchema = new mongoose.Schema({
   last_name: { type: String },
   phone: { type: String },
   address: { type: String },
-  role: { type: String, enum: ['user', 'admin'], default: 'user' },
-  created_at: { type: Date, default: Date.now },
 
+  role: {
+    type: String,
+    enum: ['user', 'admin', 'supplier'],
+    default: 'user'
+  },
+
+  avatar: { type: String },           
+  is_active: { type: Boolean, default: true },
+
+  coin_total: { type: Number, default: 0 },   
+  created_at: { type: Date, default: Date.now },
 
   resetPasswordOTP: { type: String },
   resetPasswordExpires: { type: Date },
@@ -17,5 +26,3 @@ const userSchema = new mongoose.Schema({
   otp: { type: String },
   otpExpiry: { type: Date }
 });
-
-module.exports = mongoose.model('User', userSchema);

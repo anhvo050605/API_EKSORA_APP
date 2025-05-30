@@ -30,7 +30,8 @@ const registerUser = async (req, res) => {
       last_name,
       phone,
       address,
-      role: 'user'
+      role: 'user',
+      coin_total: 0 
     });
 
     await newUser.save();

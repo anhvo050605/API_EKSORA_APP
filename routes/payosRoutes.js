@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const payosController = require('../controllers/payosController');
+const { createPayment } = require('../controllers/payment.controller');
 
-router.post('/create-payment', payosController.createPayment);
-router.post('/payos-webhook', payosController.handleWebhook);
+// POST /api/payment/create
+router.post('/create', createPayment);
 
 module.exports = router;

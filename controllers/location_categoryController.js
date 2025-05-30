@@ -1,5 +1,5 @@
 // controllers/categoryController.js
-const CategoryTour = require('../schema/categorySchema');
+const CategoryTour = require('../schema/location_categorySchema');
 const Tour = require('../schema/tourSchema');
 
 // Lấy tất cả danh mục
@@ -25,23 +25,23 @@ exports.createCategory = async (req, res) => {
 };
 
 // Lấy danh sách tour theo danh mục (hoặc tất cả)
-exports.getToursByCategory = async (req, res) => {
-  const { cateID } = req.query;
+exports.getToursByLocation = async (req, res) => {
+  const { location } = req.query;
   try {
     let tours;
 
-    if (!cateID || cateID === "all") {
-      // Nếu không truyền cateID hoặc là 'all' thì trả về tất cả tour
+    if (!location || location.toLowerCase() === "all") {
+      // Nếu không truyền location hoặc là 'all' thì trả về tất cả tour
       tours = await Tour.find();
     } else {
-      // Nếu cateID là một ObjectId thực sự
-      tours = await Tour.find({ cateID: new mongoose.Types.ObjectId(cateID) });
+      // Lọc theo location (phân biệt chữ hoa/thường)
+      tours = await Tour.find({ location: { $regex: new RegExp(location, 'i') } });
     }
 
     res.status(200).json(tours);
   } catch (error) {
-    console.error("Lỗi khi lấy tour theo danh mục:", error);
-    res.status(500).json({ message: "Lỗi khi lấy tour theo danh mục" });
+    console.error("Lỗi khi lấy tour theo địa điểm:", error);
+    res.status(500).json({ message: "Lỗi khi lấy tour theo địa điểm" });
   }
 };
 //Cập nhật danh mục
