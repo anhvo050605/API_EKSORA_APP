@@ -21,7 +21,7 @@ const highlightPlaceRouter = require('./routes/highlightPlaceRouter');
 const bookingRoutes = require('./routes/bookingRoutes');
 const voucherRoutes = require('./routes/voucherRoutes');
 const favoriteRoutes = require('./routes/favoriteRoutes');
-
+const serviceRoutes = require('./routes/serviceRoutes');
 
 
 
@@ -70,7 +70,7 @@ app.use('/api/favorites', favoriteRoutes);
 
 app.use('/api', userRoutes);
 
-
+app.use('/api/services', serviceRoutes);
 
 
 

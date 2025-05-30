@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const Tour = require('../schema/tourSchema');
 const HighlightPlace = require("../schema/highlightPlaceSchema");
+const Service = require("../schema/serviceSchema");
+const OptionService = require("../schema/optionServiceSchema");
 // Lấy tất cả tour
 const getAllTours = async (req, res) => {
   try {
@@ -59,9 +61,6 @@ const getTourDetail = async (req, res) => {
   try {
     const { id } = req.params;
 
-    
-
-    // Kiểm tra ID hợp lệ
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: "ID không hợp lệ" });
     }
@@ -75,21 +74,37 @@ const getTourDetail = async (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy tour" });
     }
 
-    // Lấy danh sách địa điểm nổi bật theo location của tour
-    const highlights = await HighlightPlace.find({ province: tour.location });
+    // Lấy danh sách địa điểm nổi bật theo location
+    const highlights = await HighlightPlace.find({ province: tour.province });
 
-    // Trả về tour kèm theo địa điểm nổi bật
+    // Lấy danh sách service theo tour
+    const services = await Service.find({ tour_id: id });
+
+    // Với mỗi service, gắn thêm danh sách optionService
+    const servicesWithOptions = await Promise.all(
+      services.map(async (service) => {
+        const options = await OptionService.find({ service_id: service._id });
+        return {
+          ...service.toObject(),
+          options
+        };
+      })
+    );
+
+    // Trả về tour chi tiết kèm theo highlight và services
     res.status(200).json({
       tour,
       highlights,
+      services: servicesWithOptions
     });
+
   } catch (err) {
     console.error("Lỗi khi lấy chi tiết tour:", err);
     res.status(500).json({ message: "Lỗi máy chủ" });
   }
 };
 
-
+  
 module.exports = {
   getAllTours,
   createTour,getTourDetail

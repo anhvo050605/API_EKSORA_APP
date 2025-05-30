@@ -1,30 +1,23 @@
 const mongoose = require('mongoose');
 
 const optionServiceSchema = new mongoose.Schema({
-  tour_id: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Tour', 
-    required: true 
+  service_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Service',
+    required: true
   },
-  title: { 
-    type: String, 
-    required: true // VD: "Người lớn" / "Trẻ em"
+  title: {
+    type: String,
+    required: true // VD: "Khách sạn 3 sao", "Homestay"
   },
-  description: { 
-    type: String 
+  description: String,
+  price_extra: {
+    type: Number,
+    required: true
   },
-  price_extra: { 
-    type: Number, 
-    required: true 
-  },
-  type: { 
-    type: String, 
-    enum: ['adult', 'child'], 
-    required: true 
-  },
-  created_at: { 
-    type: Date, 
-    default: Date.now 
+  created_at: {
+    type: Date,
+    default: Date.now
   }
 });
 
