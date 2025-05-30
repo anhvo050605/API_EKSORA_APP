@@ -11,7 +11,7 @@ require("./schema/userSchema");
 
 const authRoutes = require('./routes/authRoutes'); 
 const userRoutes = require('./routes/userRoutes');
-const categoryRoutes = require('./routes/categoryRoutes');
+const categoryRoutes = require('./routes/location_categoryRoutes');
 const tourRoutes = require('./routes/tourRoutes');
 const supplierRoutes = require('./routes/supplierRoutes');
 const bannerRoutes = require('./routes/bannerRoutes');
