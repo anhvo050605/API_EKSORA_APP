@@ -5,7 +5,7 @@ const tourSchema = new mongoose.Schema({
   description: { type: String },
   price: { type: Number, required: true },
   image: [{ type: String }],  
-  duration: { type: String },  // ví dụ: "3 ngày 2 đêm"
+  duration: { type: String },  
   cateID: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
   supplier_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Supplier' },
   province: { type: String, required: true },
