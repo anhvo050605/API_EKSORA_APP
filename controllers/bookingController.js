@@ -1,6 +1,5 @@
 const Booking = require('../schema/bookingSchema');
-//Tao booking mới
-const Booking = require('../schema/bookingSchema');
+
 const BookingOptionService = require('../schema/bookingOptionServiceSchema');
 
 exports.createBooking = async (req, res) => {
