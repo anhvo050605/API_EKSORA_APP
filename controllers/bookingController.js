@@ -1,5 +1,8 @@
 const Booking = require('../schema/bookingSchema');
 //Tao booking mới
+const Booking = require('../schema/bookingSchema');
+const BookingOptionService = require('../schema/bookingOptionServiceSchema');
+
 exports.createBooking = async (req, res) => {
   try {
     const {
@@ -8,8 +11,15 @@ exports.createBooking = async (req, res) => {
       travel_date,
       quantity_nguoiLon,
       quantity_treEm,
-      totalPrice
+      price_nguoiLon,
+      price_treEm,
+      coin,
+      voucher_id,
+      optionServices // [{ option_service_id, quantity }]
     } = req.body;
+
+    // Tính tổng tiền (có thể tùy chỉnh lại công thức)
+    let total = (price_nguoiLon * quantity_nguoiLon) + (price_treEm * quantity_treEm);
 
     const newBooking = new Booking({
       user_id,
@@ -17,16 +27,32 @@ exports.createBooking = async (req, res) => {
       travel_date,
       quantity_nguoiLon,
       quantity_treEm,
-      totalPrice
+      price_nguoiLon,
+      price_treEm,
+      coin,
+      voucher_id,
+      totalPrice: total
     });
 
     await newBooking.save();
+
+    // Thêm lựa chọn dịch vụ nếu có
+    if (optionServices && optionServices.length > 0) {
+      const bookingOptions = optionServices.map(opt => ({
+        booking_id: newBooking._id,
+        option_service_id: opt.option_service_id,
+        quantity: opt.quantity
+      }));
+      await BookingOptionService.insertMany(bookingOptions);
+    }
+
     res.status(201).json({ message: 'Đặt tour thành công', booking: newBooking });
   } catch (error) {
     console.error('Lỗi khi đặt tour:', error);
     res.status(500).json({ message: 'Lỗi máy chủ khi đặt tour' });
   }
 };
+
 //Lây danh sách booking của người dùng
 exports.getBookingsByUser = async (req, res) => {
   try {

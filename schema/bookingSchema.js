@@ -1,45 +1,19 @@
 const mongoose = require('mongoose');
 
 const bookingSchema = new mongoose.Schema({
-  user_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  tour_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Tour',
-    required: true
-  },
-  booking_date: {
-    type: Date,
-    default: Date.now
-  },
-  travel_date: {
-    type: Date,
-    required: true
-  },
-  quantity_nguoiLon: {
-    type: Number,
-    required: true
-  },
-  quantity_treEm: {
-    type: Number,
-    required: true
-  },
-  totalPrice: {
-    type: Number,
-    required: true
-  },
-  status: {
-    type: String,
-    enum: ['pending', 'confirmed', 'cancelled'],
-    default: 'pending'
-  },
-  created_at: {
-    type: Date,
-    default: Date.now
-  }
+  user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  tour_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Tour', required: true },
+  booking_date: { type: Date, default: Date.now },
+  travel_date: { type: Date, required: true },
+  quantity_nguoiLon: { type: Number, required: true },
+  quantity_treEm: { type: Number, required: true },
+  price_nguoiLon: { type: Number },
+  price_treEm: { type: Number },
+  coin: { type: Number, default: 0 },
+  transaction_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Transaction' },
+  voucher_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Voucher' },
+  status: { type: String, enum: ['pending', 'confirmed', 'cancelled'], default: 'pending' },
+  created_at: { type: Date, default: Date.now }
 });
 
 module.exports = mongoose.model('Booking', bookingSchema);
