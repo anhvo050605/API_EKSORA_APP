@@ -65,12 +65,27 @@ exports.getBookingsByUser = async (req, res) => {
 // Lấy chi tiết booking
 exports.getBookingDetail = async (req, res) => {
   try {
-    const booking = await Booking.findById(req.params.id).populate('tour_id user_id');
+    // Tìm booking theo ID và populate tour + user
+    const booking = await Booking.findById(req.params.id)
+      .populate('tour_id')
+      .populate('user_id');
+
     if (!booking) {
       return res.status(404).json({ message: 'Không tìm thấy booking' });
     }
-    res.status(200).json(booking);
+
+    // Tìm các dịch vụ người dùng đã chọn trong bảng booking_option_service
+    const selectedOptions = await BookingOptionService.find({ booking_id: booking._id })
+      .populate('option_service_id');
+
+    // Trả về kết quả đầy đủ
+    res.status(200).json({
+      booking,
+      selected_options: selectedOptions
+    });
+
   } catch (error) {
+    console.error('Lỗi máy chủ khi lấy booking:', error);
     res.status(500).json({ message: 'Lỗi máy chủ khi lấy booking' });
   }
 };
