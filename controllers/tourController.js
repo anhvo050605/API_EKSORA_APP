@@ -40,7 +40,7 @@ const createTour = async (req, res) => {
   }
 };
 
-// Chi tiết tour có đầy đủ services và optionService
+// Lấy chi tiết tour
 const getTourDetail = async (req, res) => {
   try {
     const { id } = req.params;
@@ -48,6 +48,7 @@ const getTourDetail = async (req, res) => {
       return res.status(400).json({ message: "ID không hợp lệ" });
     }
 
+    // Lấy thông tin tour
     const tour = await Tour.findById(id)
       .populate('cateID')
       .populate('supplier_id');
@@ -55,6 +56,30 @@ const getTourDetail = async (req, res) => {
     if (!tour) {
       return res.status(404).json({ message: "Không tìm thấy tour" });
     }
+
+    // Lấy highlight theo tỉnh
+    const highlights = await HighlightPlace.find({ province: tour.province });
+
+    // Lấy các service thuộc tour
+    const services = await Service.find({ tour_id: id });
+
+    // Với mỗi service, gắn danh sách optionService
+    const servicesWithOptions = await Promise.all(
+      services.map(async (service) => {
+        const options = await OptionService.find({ service_id: service._id });
+        return {
+          ...service.toObject(),
+          options
+        };
+      })
+    );
+
+    // Trả dữ liệu chi tiết
+    res.status(200).json({
+      tour,
+      highlights,
+      services: servicesWithOptions
+    });
 
   } catch (error) {
     console.error("Lỗi khi lấy chi tiết tour:", error);
