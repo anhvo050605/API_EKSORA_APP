@@ -1,12 +1,25 @@
 const Service = require('../schema/serviceSchema');
-
+const OptionService = require('../schema/optionServiceSchema');
 exports.getServicesByTour = async (req, res) => {
   try {
     const { tourId } = req.query;
     const services = await Service.find({ tour_id: tourId });
-    res.status(200).json(services);
+
+    // Lấy kèm OptionService
+    const results = await Promise.all(
+      services.map(async (service) => {
+        const options = await OptionService.find({ service_id: service._id });
+        return {
+          ...service.toObject(),
+          options
+        };
+      })
+    );
+
+    res.status(200).json(results);
   } catch (error) {
-    res.status(500).json({ message: 'Lỗi khi lấy danh sách dịch vụ', error });
+    console.error('Lỗi lấy service:', error);
+    res.status(500).json({ message: 'Lỗi máy chủ khi lấy dịch vụ' });
   }
 };
 
