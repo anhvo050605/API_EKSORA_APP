@@ -33,29 +33,6 @@ const createTour = async (req, res) => {
     res.status(500).json({ message: 'Lỗi máy chủ', error });
   }
 };
-//Chi tiết tour
-// const getTourDetail = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-
-//     if (!mongoose.Types.ObjectId.isValid(id)) {
-//       return res.status(400).json({ message: "ID không hợp lệ" });
-//     }
-
-//     const tour = await Tour.findById(id)
-//       .populate('cateID')
-//       .populate('supplier_id');
-
-//     if (!tour) {
-//       return res.status(404).json({ message: "Không tìm thấy tour" });
-//     }
-
-//     res.status(200).json(tour);
-//   } catch (err) {
-//     console.error("Lỗi khi lấy chi tiết tour:", err);
-//     res.status(500).json({ message: "Lỗi máy chủ" });
-//   }
-// };
 
 const getTourDetail = async (req, res) => {
   try {
@@ -65,7 +42,7 @@ const getTourDetail = async (req, res) => {
       return res.status(400).json({ message: "ID không hợp lệ" });
     }
 
-    // Tìm tour, populate danh mục & nhà cung cấp
+    // Lấy chi tiết tour và nhà cung cấp
     const tour = await Tour.findById(id)
       .populate("cateID")
       .populate("supplier_id");
@@ -74,13 +51,13 @@ const getTourDetail = async (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy tour" });
     }
 
-    // Lấy danh sách địa điểm nổi bật theo location
-    const highlights = await HighlightPlace.find({ province: tour.province });
+    // Lấy các địa điểm nổi bật theo tỉnh
+    const highlights = await HighlightPlace.find({ province: tour.location });
 
-    // Lấy danh sách service theo tour
-    const services = await Service.find({ tour_id: id });
+    // Lấy danh sách service theo tour_id (bảo đảm là ObjectId)
+    const services = await Service.find({ tour_id: new mongoose.Types.ObjectId(id) });
 
-    // Với mỗi service, gắn thêm danh sách optionService
+    // Gắn danh sách optionService cho từng service
     const servicesWithOptions = await Promise.all(
       services.map(async (service) => {
         const options = await OptionService.find({ service_id: service._id });
@@ -91,7 +68,7 @@ const getTourDetail = async (req, res) => {
       })
     );
 
-    // Trả về tour chi tiết kèm theo highlight và services
+    // Trả kết quả
     res.status(200).json({
       tour,
       highlights,
