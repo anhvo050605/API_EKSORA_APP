@@ -56,25 +56,6 @@ const getTourDetail = async (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy tour" });
     }
 
-    const highlights = await HighlightPlace.find({ province: tour.province });
-
-    const services = await Service.find({ tour_id: id });
-    const servicesWithOptions = await Promise.all(
-      services.map(async (service) => {
-        const options = await OptionService.find({ service_id: service._id });
-        return {
-          ...service.toObject(),
-          options
-        };
-      })
-    );
-
-    res.status(200).json({
-      tour,
-      highlights,
-      services: servicesWithOptions
-    });
-
   } catch (error) {
     console.error("Lỗi khi lấy chi tiết tour:", error);
     res.status(500).json({ message: "Lỗi máy chủ" });
