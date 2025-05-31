@@ -1,5 +1,6 @@
 const Service = require('../schema/serviceSchema');
 const OptionService = require('../schema/optionServiceSchema');
+// Lấy danh sách dịch vụ theo tour
 exports.getServicesByTour = async (req, res) => {
   try {
     const { tourId } = req.query;
