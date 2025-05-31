@@ -26,16 +26,16 @@ exports.createCategory = async (req, res) => {
 
 // Lấy danh sách tour theo danh mục (hoặc tất cả)
 exports.getToursByLocation = async (req, res) => {
-  const { location } = req.query;
+  const { province } = req.query;
   try {
     let tours;
 
-    if (!location || location.toLowerCase() === "all") {
+    if (!province || province.toLowerCase() === "all") {
       // Nếu không truyền location hoặc là 'all' thì trả về tất cả tour
       tours = await Tour.find();
     } else {
       // Lọc theo location (phân biệt chữ hoa/thường)
-      tours = await Tour.find({ location: { $regex: new RegExp(location, 'i') } });
+      tours = await Tour.find({ province: { $regex: new RegExp(province, 'i') } });
     }
 
     res.status(200).json(tours);
