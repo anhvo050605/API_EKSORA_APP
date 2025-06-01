@@ -61,9 +61,8 @@ const getTourDetail = async (req, res) => {
     const highlights = await HighlightPlace.find({ province: tour.province });
 
     // Lấy các service thuộc tour
-    const services = await Service.find({ tour_id: id });
+    const services = await Service.find({ tour_id: new mongoose.Types.ObjectId(id) });
 
-    // Với mỗi service, gắn danh sách optionService
     const servicesWithOptions = await Promise.all(
       services.map(async (service) => {
         const options = await OptionService.find({ service_id: service._id });
