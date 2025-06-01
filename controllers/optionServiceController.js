@@ -3,7 +3,9 @@ const OptionService = require('../schema/optionServiceSchema');
 exports.getOptionsByService = async (req, res) => {
   try {
     const { serviceId } = req.query;
-    const options = await OptionService.find({ service_id: serviceId });
+    const options = await OptionService.find({
+      service_id: new mongoose.Types.ObjectId(serviceId)
+    });
     res.status(200).json(options);
   } catch (error) {
     res.status(500).json({ message: 'Lỗi khi lấy option', error });
