@@ -1,16 +1,11 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const paymentSchema = new mongoose.Schema({
-  payment_id: { type: String, required: true, unique: true },
-  booking_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Booking', required: true },
-  sepay_transaction_id: { type: String },
+const transactionSchema = new mongoose.Schema({
+  booking_id: { type: mongoose.Schema.Types.ObjectId, ref: "Booking", required: true },
   amount: { type: Number, required: true },
-  currency: { type: String, default: 'VND' },
-  payment_method_gateway: { type: String, default: 'SePay' },
-  status: { type: String, enum: ['pending', 'paid', 'failed'], default: 'pending' },
-  gateway_response_code: { type: String },
-  payment_url: { type: String },
-  paid_at: { type: Date },
-}, { timestamps: true }); // createdAt & updatedAt auto
+  payment_date: { type: Date, default: Date.now },
+  payment_method: { type: String, enum: ["PayOS", "VNPay", "Momo", "Cash"], required: true },
+  status: { type: String, enum: ["PENDING", "SUCCESS", "FAILED"], default: "PENDING" },
+}, { timestamps: true });
 
-module.exports = mongoose.model('Payment', paymentSchema);
+module.exports = mongoose.model("Transaction", transactionSchema);
