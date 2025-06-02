@@ -24,7 +24,7 @@ const favoriteRoutes = require('./routes/favoriteRoutes');
 const serviceRoutes = require('./routes/serviceRoutes');
 const bookingOptionServiceRoutes = require('./routes/bookingOptionServiceRoutes');
 const tourServiceRoutes = require('./routes/tourServiceRoutes');
-const paymentRoutes = require("./routes/paymentRoutes");
+
 
 
 
@@ -78,7 +78,6 @@ app.use('/api/booking-options', bookingOptionServiceRoutes);
 
 app.use('/api/tour-services', tourServiceRoutes);
 
-app.use("/api", paymentRoutes);
 
 
 //===================================================================================================
