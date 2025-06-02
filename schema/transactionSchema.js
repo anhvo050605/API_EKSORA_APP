@@ -1,13 +1,17 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const transactionSchema = new mongoose.Schema({
-  booking_id: { type: mongoose.Schema.Types.ObjectId, ref: "Booking" },
-  amount: Number,
-  payment_date: Date,
-  payment_method: String,
-  status: String,
-  created_at: { type: Date, default: Date.now },
-  updated_at: { type: Date, default: Date.now }
+  bookingId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Booking',
+    required: true,
+  },
+  orderCode: { type: Number, required: true },
+  amount: { type: Number, required: true },
+  status: { type: String, default: 'PENDING' }, // PENDING | SUCCESS | FAILED
+  payUrl: { type: String },
+  returnUrl: { type: String },
+  createdAt: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model("Transaction", transactionSchema);
+module.exports = mongoose.model('Transaction', transactionSchema);

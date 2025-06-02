@@ -1,10 +1,10 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const paymentController = require("../controllers/paymentController");
+const paymentController = require('../controllers/paymentController');
 
-router.post("/payment-request", paymentController.createPaymentRequest);
-router.get("/payment-request/:id", paymentController.getPaymentById);
-router.post("/payment-request/:id/cancel", paymentController.cancelPaymentRequest);
-router.post("/webhook", paymentController.confirmWebhook);
+router.post('/create-payment', paymentController.createPayment);
+router.get('/transaction/:id', paymentController.getTransactionById);
+router.get('/booking/:bookingId', paymentController.getTransactionsByBooking);
+router.post('/webhook', paymentController.webhook);
 
 module.exports = router;

@@ -1,105 +1,108 @@
-const axios = require("axios");
-const Transaction = require("../schema/transactionSchema");
+const crypto = require('crypto');
+const axios = require('axios');
+const Transaction = require('../schema/transactionSchema'); // Đảm bảo đường dẫn đúng đến schema Transaction
+const mongoose = require('mongoose');
+const Booking = require('../schema/bookingSchema'); // Assuming you have a Booking model
 
-const PAYOS_BASE = "https://api-merchant.payos.vn/v2/payment-requests";
-const HEADERS = {
-  "Content-Type": "application/json",
-  "x-client-id": process.env.PAYOS_CLIENT_ID,
-  "x-api-key": process.env.PAYOS_API_KEY
-};
+const clientId = process.env.PAYOS_CLIENT_ID;
+const apiKey = process.env.PAYOS_API_KEY;
+const payosUrl = 'https://api-merchant.payos.vn/v2/payment-requests';
 
-// Tạo mã orderCode duy nhất (timestamp + random)
-const generateOrderCode = () => {
-  const timestamp = Date.now();
-  const random = Math.floor(1000 + Math.random() * 9000);
-  return `${timestamp}${random}`;
-};
+function generateSignature(data, apiKey) {
+  const json = JSON.stringify(data);
+  return crypto.createHmac('sha256', apiKey).update(json).digest('hex');
+}
 
-// 1. Tạo yêu cầu thanh toán
-exports.createPaymentRequest = async (req, res) => {
+exports.createPayment = async (req, res) => {
   try {
-    const { booking_id, amount, description, returnUrl, cancelUrl } = req.body;
-
-    const orderCode = generateOrderCode();
-
-    const payload = {
-      orderCode,
+    const { bookingId, amount, returnUrl, cancelUrl } = req.body;
+    const body = {
+      orderCode: Math.floor(Math.random() * 1000000),
       amount,
-      description,
+      description: `Thanh toan booking ${bookingId}`,
+      buyerName: "Khach hang",
+      buyerEmail: "test@example.com",
+      buyerPhone: "0900000000",
+      buyerAddress: "VN",
+      items: [],
       returnUrl,
-      cancelUrl
+      cancelUrl,
+      expiredAt: Math.floor(Date.now() / 1000) + 15 * 60
     };
+    body.signature = generateSignature(body, apiKey);
 
-    const response = await axios.post(PAYOS_BASE, payload, { headers: HEADERS });
-
-    // Ghi log giao dịch vào DB
-    const newTransaction = new Transaction({
-      booking_id,
-      amount,
-      payment_method: "PayOS",
-      status: "pending"
+    const response = await axios.post(payosUrl, body, {
+      headers: {
+        'x-client-id': clientId,
+        'x-api-key': apiKey,
+        'Content-Type': 'application/json'
+      }
     });
 
-    await newTransaction.save();
+    const transaction = await Transaction.create({
+      bookingId,
+      orderCode: body.orderCode,
+      amount,
+      payUrl: response.data?.data?.checkoutUrl,
+      returnUrl,
+      status: 'PENDING'
+    });
 
     res.json({
-      paymentUrl: response.data.checkoutUrl,
-      transaction_id: newTransaction._id,
-      orderCode
+      message: 'Tao thanh toan thanh cong',
+      checkoutUrl: response.data?.data?.checkoutUrl,
+      transactionId: transaction._id
     });
   } catch (error) {
-    res.status(500).json({ error: "Failed to create payment request", detail: error.message });
+    console.error('Create payment error:', error.response?.data || error);
+    res.status(500).json({ error: 'Loi tao thanh toan', detail: error.message });
   }
 };
 
-// 2. Lấy thông tin thanh toán theo ID
-exports.getPaymentById = async (req, res) => {
+exports.getTransactionById = async (req, res) => {
   try {
-    const { id } = req.params;
-    const response = await axios.get(`${PAYOS_BASE}/${id}`, { headers: HEADERS });
-    res.json(response.data);
+    const transaction = await Transaction.findById(req.params.id);
+    if (!transaction) return res.status(404).json({ error: 'Khong tim thay giao dich' });
+    res.json(transaction);
   } catch (error) {
-    res.status(500).json({ error: "Failed to get payment info", detail: error.message });
+    res.status(500).json({ error: 'Loi server' });
   }
 };
 
-// 3. Hủy yêu cầu thanh toán
-exports.cancelPaymentRequest = async (req, res) => {
+exports.getTransactionsByBooking = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { cancellationReason } = req.body;
-
-    const response = await axios.post(
-      `${PAYOS_BASE}/${id}/cancel`,
-      { cancellationReason },
-      { headers: HEADERS }
-    );
-
-    res.json(response.data);
+    const transactions = await Transaction.find({ bookingId: req.params.bookingId });
+    res.json(transactions);
   } catch (error) {
-    res.status(500).json({ error: "Failed to cancel payment", detail: error.message });
+    res.status(500).json({ error: 'Loi server' });
   }
 };
 
-// 4. Xác nhận webhook từ PayOS
-exports.confirmWebhook = async (req, res) => {
+exports.webhook = async (req, res) => {
   try {
-    const data = req.body;
+    const receivedSignature = req.headers['x-signature'];
+    const payload = req.body;
+    const calculatedSignature = generateSignature(payload, apiKey);
 
-    // Validate chữ ký nếu cần (data.signature)
+    if (receivedSignature !== calculatedSignature) {
+      return res.status(400).json({ error: 'Sai chu ky' });
+    }
 
-    const transaction = new Transaction({
-      booking_id: data.orderCode,
-      amount: data.amount,
-      payment_date: new Date(),
-      payment_method: "PayOS",
-      status: "paid"
-    });
+    const { orderCode, status } = payload;
+    if (status === 'PAID') {
+      const transaction = await Transaction.findOneAndUpdate(
+        { orderCode },
+        { status: 'SUCCESS' },
+        { new: true }
+      );
 
-    await transaction.save();
+      if (transaction) {
+        await Booking.findByIdAndUpdate(transaction.bookingId, { status: 'PAID' });
+      }
+    }
 
-    res.status(200).json({ message: "Webhook confirmed" });
+    res.json({ message: 'Da nhan webhook' });
   } catch (error) {
-    res.status(500).json({ error: "Failed to confirm webhook", detail: error.message });
+    res.status(500).json({ error: 'Loi server webhook' });
   }
 };
