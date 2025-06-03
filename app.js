@@ -32,6 +32,14 @@ const tourServiceRoutes = require('./routes/tourServiceRoutes');
 //============================================================================================================
 var app = express();
 
+
+app.use(cors({
+  origin: '*', // hoặc thay bằng 'https://your-frontend-domain.com' nếu muốn bảo mật hơn
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
@@ -78,11 +86,6 @@ app.use('/api/booking-options', bookingOptionServiceRoutes);
 
 app.use('/api/tour-services', tourServiceRoutes);
 
-app.use(cors({
-  origin: '*', // hoặc thay bằng 'https://your-frontend-domain.com' nếu muốn bảo mật hơn
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
 
 
 //===================================================================================================
