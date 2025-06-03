@@ -24,14 +24,9 @@ const favoriteRoutes = require('./routes/favoriteRoutes');
 const serviceRoutes = require('./routes/serviceRoutes');
 const bookingOptionServiceRoutes = require('./routes/bookingOptionServiceRoutes');
 const tourServiceRoutes = require('./routes/tourServiceRoutes');
-const paymentRoutes = require('./routes/paymentRoutes');
 
 
-app.use(cors({
-  origin: '*', // hoặc thay bằng 'https://your-frontend-domain.com' nếu muốn bảo mật hơn
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+
 
 
 //============================================================================================================
@@ -83,7 +78,11 @@ app.use('/api/booking-options', bookingOptionServiceRoutes);
 
 app.use('/api/tour-services', tourServiceRoutes);
 
-app.use('/api/payments', paymentRoutes);
+app.use(cors({
+  origin: '*', // hoặc thay bằng 'https://your-frontend-domain.com' nếu muốn bảo mật hơn
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 
 //===================================================================================================
