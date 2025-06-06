@@ -14,9 +14,9 @@ exports.getAllCategories = async (req, res) => {
 
 // Tạo danh mục mới
 exports.createCategory = async (req, res) => {
-  const { name } = req.body;
+  const { name, image } = req.body;
   try {
-    const newCategory = new CategoryTour({ name });
+    const newCategory = new CategoryTour({ name, image });
     await newCategory.save();
     res.status(201).json(newCategory);
   } catch (error) {
@@ -47,13 +47,13 @@ exports.getToursByLocation = async (req, res) => {
 //Cập nhật danh mục
 exports.updateCategory = async (req, res) => {
   const { id } = req.params;
-  const { name} = req.body;
+  const { name, image } = req.body;
 
   try {
     const updated = await CategoryTour.findByIdAndUpdate(
       id,
-      { name },
-      { new: true } // trả về dữ liệu sau khi cập nhật
+      { name, image },
+      { new: true }
     );
 
     if (!updated) {
@@ -66,6 +66,7 @@ exports.updateCategory = async (req, res) => {
     res.status(500).json({ message: "Lỗi máy chủ" });
   }
 };
+
 // Xóa danh mục
 exports.deleteCategory = async (req, res) => {
   const { id } = req.params;
