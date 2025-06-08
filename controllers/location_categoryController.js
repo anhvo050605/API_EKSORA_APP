@@ -31,7 +31,7 @@ exports.getToursByLocation = async (req, res) => {
   try {
     let query = {};
     if (cateID && cateID.toLowerCase() !== 'all') {
-      query.cateID = cateID; // hoặc new mongoose.Types.ObjectId(cateID) nếu bạn cần ép kiểu
+      query.cateID = new mongoose.Types.ObjectId(cateID);
     }
 
     const tours = await Tour.find(query).populate('cateID');
