@@ -24,24 +24,24 @@ exports.createCategory = async (req, res) => {
   }
 };
 
-// Lấy danh sách tour theo danh mục (hoặc tất cả)
+// Lấy danh sách tour theo cateID (ID danh mục)
 exports.getToursByLocation = async (req, res) => {
-  const { name } = req.query; // dùng name của Category
-  try {
-    let tours;
+  const { cateID } = req.query; 
 
-    if (!name || name.toLowerCase() === "all") {
-      tours = await Tour.find();
-    } else {
-      tours = await Tour.find({ province: { $regex: new RegExp(name, 'i') } });
+  try {
+    let query = {};
+    if (cateID && cateID.toLowerCase() !== 'all') {
+      query.cateID = cateID; // hoặc new mongoose.Types.ObjectId(cateID) nếu bạn cần ép kiểu
     }
 
+    const tours = await Tour.find(query).populate('cateID');
     res.status(200).json(tours);
   } catch (error) {
-    console.error("Lỗi khi lấy tour theo danh mục:", error);
-    res.status(500).json({ message: "Lỗi khi lấy tour theo danh mục" });
+    console.error("Lỗi khi lấy tour theo danh mục (cateID):", error);
+    res.status(500).json({ message: "Lỗi khi lấy tour theo danh mục (cateID)" });
   }
 };
+
 //Cập nhật danh mục
 exports.updateCategory = async (req, res) => {
   const { id } = req.params;
