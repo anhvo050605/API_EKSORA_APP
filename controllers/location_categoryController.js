@@ -1,6 +1,7 @@
 // controllers/categoryController.js
 const CategoryTour = require('../schema/location_categorySchema');
 const Tour = require('../schema/tourSchema');
+const mongoose = require('mongoose');
 
 // Lấy tất cả danh mục
 exports.getAllCategories = async (req, res) => {
