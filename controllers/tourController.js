@@ -76,8 +76,8 @@ const getTourDetail = async (req, res) => {
     // Trả dữ liệu chi tiết
     res.status(200).json({
       tour,
-      highlights,
-      services: servicesWithOptions
+      services: servicesWithOptions,
+      highlights
     });
 
   } catch (error) {
