@@ -11,10 +11,7 @@ const bookingOptionServiceSchema = new mongoose.Schema({
     ref: 'OptionService',
     required: true,
   },
-  quantity: {
-    type: Number,
-    required: true,
-  },
+  
   status: {
     type: String,
     enum: ['active', 'cancelled'],

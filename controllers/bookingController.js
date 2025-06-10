@@ -9,25 +9,16 @@ exports.createBooking = async (req, res) => {
       user_id,
       tour_id,
       travel_date,
-      quantity_nguoiLon,
-      quantity_treEm,
-      price_nguoiLon,
-      price_treEm,
       coin,
       voucher_id,
       optionServices 
     } = req.body;
 
-    let total = (price_nguoiLon * quantity_nguoiLon) + (price_treEm * quantity_treEm);
 
     const newBooking = new Booking({
       user_id,
       tour_id,
       travel_date,
-      quantity_nguoiLon,
-      quantity_treEm,
-      price_nguoiLon,
-      price_treEm,
       coin,
       voucher_id,
       totalPrice: total
@@ -39,7 +30,6 @@ exports.createBooking = async (req, res) => {
       const bookingOptions = optionServices.map(opt => ({
         booking_id: newBooking._id,
         option_service_id: new mongoose.Types.ObjectId(opt.option_service_id),
-        quantity: opt.quantity
       }));
       await BookingOptionService.insertMany(bookingOptions);
     }
