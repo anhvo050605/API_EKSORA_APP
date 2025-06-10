@@ -6,6 +6,7 @@ const bookingSchema = new mongoose.Schema({
   booking_date: { type: Date, default: Date.now },
   travel_date: { type: Date, required: true },
   coin: { type: Number, default: 0 },
+  totalPrice: { type: Number, default: 0 },
   transaction_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Transaction' },
   voucher_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Voucher' },
   status: { type: String, enum: ['pending', 'confirmed', 'cancelled'], default: 'pending' },

@@ -11,22 +11,35 @@ exports.createBooking = async (req, res) => {
       travel_date,
       coin,
       voucher_id,
-      optionServices 
+      optionServices = []
     } = req.body;
 
+    // Tính tổng giá từ các option service
+    let totalPrice = 0;
+    if (Array.isArray(optionServices) && optionServices.length > 0) {
+      const optionIds = optionServices.map(opt => opt.option_service_id);
 
+      // Lấy thông tin các option từ DB
+      const optionDocs = await OptionService.find({ _id: { $in: optionIds } });
+
+      // Tính tổng giá dựa trên price_extra
+      totalPrice = optionDocs.reduce((sum, opt) => sum + (opt.price_extra || 0), 0);
+    }
+
+    // Tạo booking mới
     const newBooking = new Booking({
       user_id,
       tour_id,
       travel_date,
       coin,
       voucher_id,
-      totalPrice: total
+      totalPrice
     });
 
     await newBooking.save();
 
-    if (Array.isArray(optionServices) && optionServices.length > 0) {
+    // Lưu các lựa chọn option
+    if (optionServices.length > 0) {
       const bookingOptions = optionServices.map(opt => ({
         booking_id: newBooking._id,
         option_service_id: new mongoose.Types.ObjectId(opt.option_service_id),
