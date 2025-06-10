@@ -3,7 +3,7 @@ const Tour = require('../schema/tourSchema');
 const HighlightPlace = require('../schema/highlightPlaceSchema');
 const Service = require('../schema/serviceSchema');
 const OptionService = require('../schema/optionServiceSchema');
-
+const Review = require('../schema/reviewSchema'); 
 // Lấy tất cả tour
 const getAllTours = async (req, res) => {
   try {
@@ -72,12 +72,14 @@ const getTourDetail = async (req, res) => {
         };
       })
     );
+     const reviews = await Review.find({ 'tour.id': id }).lean();
 
     // Trả dữ liệu chi tiết
     res.status(200).json({
       tour,
       services: servicesWithOptions,
-      highlights
+      highlights,
+      reviews
     });
 
   } catch (error) {
