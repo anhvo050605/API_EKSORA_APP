@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Booking = require('../schema/bookingSchema');
 const BookingOptionService = require('../schema/bookingOptionServiceSchema');
-
+const OptionService = require('../schema/optionServiceSchema');
 // Tạo booking mới và lưu lựa chọn dịch vụ
 exports.createBooking = async (req, res) => {
   try {
