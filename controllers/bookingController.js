@@ -11,34 +11,40 @@ exports.createBooking = async (req, res) => {
       travel_date,
       coin,
       voucher_id,
+      quantity_nguoiLon = 0,
+      quantity_treEm = 0,
+      price_nguoiLon = 0,
+      price_treEm = 0,
       optionServices = []
     } = req.body;
 
-    // Tính tổng giá từ các option service
-    let totalPrice = 0;
+    // Tính giá vé chính
+    let totalPrice = (quantity_nguoiLon * price_nguoiLon) + (quantity_treEm * price_treEm);
+
+    // Tính thêm giá từ các option service
     if (Array.isArray(optionServices) && optionServices.length > 0) {
       const optionIds = optionServices.map(opt => opt.option_service_id);
-
-      // Lấy thông tin các option từ DB
       const optionDocs = await OptionService.find({ _id: { $in: optionIds } });
 
-      // Tính tổng giá dựa trên price_extra
-      totalPrice = optionDocs.reduce((sum, opt) => sum + (opt.price_extra || 0), 0);
+      const extra = optionDocs.reduce((sum, opt) => sum + (opt.price_extra || 0), 0);
+      totalPrice += extra;
     }
 
-    // Tạo booking mới
     const newBooking = new Booking({
       user_id,
       tour_id,
       travel_date,
       coin,
       voucher_id,
-      totalPrice
+      quantity_nguoiLon,
+      quantity_treEm,
+      price_nguoiLon,
+      price_treEm,
+      totalPrice,
     });
 
     await newBooking.save();
 
-    // Lưu các lựa chọn option
     if (optionServices.length > 0) {
       const bookingOptions = optionServices.map(opt => ({
         booking_id: newBooking._id,
@@ -53,6 +59,7 @@ exports.createBooking = async (req, res) => {
     res.status(500).json({ message: 'Lỗi máy chủ khi đặt tour' });
   }
 };
+
 
 // Lấy danh sách booking theo user
 exports.getBookingsByUser = async (req, res) => {
