@@ -11,52 +11,59 @@ exports.createBooking = async (req, res) => {
       travel_date,
       coin,
       voucher_id,
-      quantity_nguoiLon = 0,
-      quantity_treEm = 0,
-      price_nguoiLon = 0,
-      price_treEm = 0,
-      optionServices = []
+      quantityAdult = 0,
+      quantityChild = 0,
+      selectedOptions = {}, // ✅ Từ frontend gửi lên là object { service_id: option_id }
     } = req.body;
 
-    // Tính giá vé chính
-    let totalPrice = (quantity_nguoiLon * price_nguoiLon) + (quantity_treEm * price_treEm);
+    const DEFAULT_ADULT_PRICE = 300000;
+    const DEFAULT_CHILD_PRICE = 150000;
+    const [day, month, year] = travel_date.split('/');
+    const travelDateObj = new Date(`${year}-${month}-${day}`);
+    // ✅ Tính giá vé chính
+    let totalPrice = (quantityAdult * DEFAULT_ADULT_PRICE) + (quantityChild * DEFAULT_CHILD_PRICE);
 
-    // Tính thêm giá từ các option service
-    if (Array.isArray(optionServices) && optionServices.length > 0) {
-      const optionIds = optionServices.map(opt => opt.option_service_id);
-      const optionDocs = await OptionService.find({ _id: { $in: optionIds } });
+    // ✅ Lấy danh sách option_id từ object selectedOptions
+    const selectedOptionIds = Object.values(selectedOptions)
+      .filter(id => mongoose.Types.ObjectId.isValid(id)); // => mảng option_service_id
 
-      const extra = optionDocs.reduce((sum, opt) => sum + (opt.price_extra || 0), 0);
+    // ✅ Tính giá phụ thu từ option services
+    let extra = 0;
+    if (selectedOptionIds.length > 0) {
+      const optionDocs = await OptionService.find({ _id: { $in: selectedOptionIds } });
+      extra = optionDocs.reduce((sum, opt) => sum + (opt.price_extra || 0), 0);
       totalPrice += extra;
     }
 
+    // ✅ Tạo bản ghi booking chính
     const newBooking = new Booking({
       user_id,
       tour_id,
-      travel_date,
+      travel_date: travelDateObj,
       coin,
       voucher_id,
-      quantity_nguoiLon,
-      quantity_treEm,
-      price_nguoiLon,
-      price_treEm,
+      quantity_nguoiLon: quantityAdult,
+      quantity_treEm: quantityChild,
+      price_nguoiLon: DEFAULT_ADULT_PRICE,
+      price_treEm: DEFAULT_CHILD_PRICE,
       totalPrice,
     });
 
     await newBooking.save();
 
-    if (optionServices.length > 0) {
-      const bookingOptions = optionServices.map(opt => ({
+    // ✅ Lưu các option service người dùng chọn
+    if (selectedOptionIds.length > 0) {
+      const bookingOptions = selectedOptionIds.map(optId => ({
         booking_id: newBooking._id,
-        option_service_id: new mongoose.Types.ObjectId(opt.option_service_id),
+        option_service_id: new mongoose.Types.ObjectId(optId),
       }));
       await BookingOptionService.insertMany(bookingOptions);
     }
 
     res.status(201).json({ message: 'Đặt tour thành công', booking: newBooking });
   } catch (error) {
-    console.error('Lỗi khi đặt tour:', error);
-    res.status(500).json({ message: 'Lỗi máy chủ khi đặt tour' });
+    console.error('❌ Lỗi khi đặt tour:', error);
+    res.status(500).json({ message: 'Lỗi máy chủ khi đặt tour', error: error.message });
   }
 };
 
