@@ -35,7 +35,8 @@ const loginWithPhone = async (req, res) => {
 
     res.status(200).json({
       message: 'Đăng nhập thành công!',
-      token
+      token,
+      userId: user._id
     });
 
   } catch (error) {
