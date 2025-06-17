@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Booking = require('../schema/bookingSchema');
 const BookingOptionService = require('../schema/bookingOptionServiceSchema');
 const OptionService = require('../schema/optionServiceSchema');
+const Tour = require('../schema/tourSchema'); // ✅ Thêm import
 // Tạo booking mới và lưu lựa chọn dịch vụ
 exports.createBooking = async (req, res) => {
   try {
@@ -12,38 +13,47 @@ exports.createBooking = async (req, res) => {
       coin,
       voucher_id,
       quantity_nguoiLon = 0,
-      quantity_treEm  = 0,
-      selectedOptions = {}, // ✅ Từ frontend gửi lên là object { service_id: option_id }
+      quantity_treEm = 0,
+      selectedOptions = {}, // { service_id: option_service_id }
     } = req.body;
 
     const DEFAULT_ADULT_PRICE = 300000;
     const DEFAULT_CHILD_PRICE = 150000;
-    const [day, month, year] = travel_date.split('/');
+
+    // ✅ Lấy giá gốc tour
+    const tour = await Tour.findById(tour_id);
+    if (!tour) return res.status(404).json({ message: 'Không tìm thấy tour' });
+
+    // ✅ Chuyển travel_date từ string => Date
+    const [year, month, day] = travel_date.split('-');
     const travelDateObj = new Date(`${year}-${month}-${day}`);
-    // ✅ Tính giá vé chính
-    let totalPrice = (quantity_nguoiLon  * DEFAULT_ADULT_PRICE) + (quantity_treEm * DEFAULT_CHILD_PRICE);
 
-    // ✅ Lấy danh sách option_id từ object selectedOptions
+    // ✅ Tính tổng giá
+    let totalPrice = tour.price; // 👉 Giá gốc tour
+
+    // ✅ Tính giá theo người lớn và trẻ em
+    totalPrice += (quantity_nguoiLon * DEFAULT_ADULT_PRICE);
+    totalPrice += (quantity_treEm * DEFAULT_CHILD_PRICE);
+
+    // ✅ Xử lý phụ thu từ dịch vụ option
     const selectedOptionIds = Object.values(selectedOptions)
-      .filter(id => mongoose.Types.ObjectId.isValid(id)); // => mảng option_service_id
+      .filter(id => mongoose.Types.ObjectId.isValid(id));
 
-    // ✅ Tính giá phụ thu từ option services
-    let extra = 0;
     if (selectedOptionIds.length > 0) {
       const optionDocs = await OptionService.find({ _id: { $in: selectedOptionIds } });
-      extra = optionDocs.reduce((sum, opt) => sum + (opt.price_extra || 0), 0);
+      const extra = optionDocs.reduce((sum, opt) => sum + (opt.price_extra || 0), 0);
       totalPrice += extra;
     }
 
-    // ✅ Tạo bản ghi booking chính
+    // ✅ Tạo booking
     const newBooking = new Booking({
       user_id,
       tour_id,
       travel_date: travelDateObj,
       coin,
       voucher_id,
-      quantity_nguoiLon: quantity_nguoiLon,
-      quantity_treEm: quantity_treEm,
+      quantity_nguoiLon,
+      quantity_treEm,
       price_nguoiLon: DEFAULT_ADULT_PRICE,
       price_treEm: DEFAULT_CHILD_PRICE,
       totalPrice,
@@ -51,7 +61,7 @@ exports.createBooking = async (req, res) => {
 
     await newBooking.save();
 
-    // ✅ Lưu các option service người dùng chọn
+    // ✅ Lưu dịch vụ đã chọn (nếu có)
     if (selectedOptionIds.length > 0) {
       const bookingOptions = selectedOptionIds.map(optId => ({
         booking_id: newBooking._id,
