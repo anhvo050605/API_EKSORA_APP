@@ -11,8 +11,8 @@ exports.createBooking = async (req, res) => {
       travel_date,
       coin,
       voucher_id,
-      quantityAdult = 0,
-      quantityChild = 0,
+      quantity_nguoiLon = 0,
+      quantity_treEm  = 0,
       selectedOptions = {}, // ✅ Từ frontend gửi lên là object { service_id: option_id }
     } = req.body;
 
@@ -21,7 +21,7 @@ exports.createBooking = async (req, res) => {
     const [day, month, year] = travel_date.split('/');
     const travelDateObj = new Date(`${year}-${month}-${day}`);
     // ✅ Tính giá vé chính
-    let totalPrice = (quantityAdult * DEFAULT_ADULT_PRICE) + (quantityChild * DEFAULT_CHILD_PRICE);
+    let totalPrice = (quantity_nguoiLon  * DEFAULT_ADULT_PRICE) + (quantity_treEm * DEFAULT_CHILD_PRICE);
 
     // ✅ Lấy danh sách option_id từ object selectedOptions
     const selectedOptionIds = Object.values(selectedOptions)
@@ -42,8 +42,8 @@ exports.createBooking = async (req, res) => {
       travel_date: travelDateObj,
       coin,
       voucher_id,
-      quantity_nguoiLon: quantityAdult,
-      quantity_treEm: quantityChild,
+      quantity_nguoiLon: quantity_nguoiLon,
+      quantity_treEm: quantity_treEm,
       price_nguoiLon: DEFAULT_ADULT_PRICE,
       price_treEm: DEFAULT_CHILD_PRICE,
       totalPrice,
