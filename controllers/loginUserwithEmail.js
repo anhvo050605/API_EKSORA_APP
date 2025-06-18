@@ -41,11 +41,11 @@ const loginUserwithEmail = async (req, res) => {
       message: 'Đăng nhập thành công',
       token,
       userId: user._id,
-      user: {
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        phone: user.phone
+       user: {
+        firstName: user.first_name || '',
+        lastName: user.last_name || '',
+        email: user.email || '',
+        phone: user.phone || ''
       }
     });
 
