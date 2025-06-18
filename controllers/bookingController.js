@@ -14,29 +14,28 @@ exports.createBooking = async (req, res) => {
       voucher_id,
       quantity_nguoiLon = 0,
       quantity_treEm = 0,
-      selectedOptions = {}, // { service_id: option_service_id }
+      optionServices = [] // ✅ Nhận đúng mảng từ frontend
     } = req.body;
 
     const DEFAULT_ADULT_PRICE = 300000;
     const DEFAULT_CHILD_PRICE = 150000;
 
-    // ✅ Lấy giá gốc tour
+    // ✅ Lấy thông tin tour để lấy giá gốc
     const tour = await Tour.findById(tour_id);
     if (!tour) return res.status(404).json({ message: 'Không tìm thấy tour' });
 
-    // ✅ Chuyển travel_date từ string => Date
+    // ✅ Convert travel_date sang dạng Date
     const [year, month, day] = travel_date.split('-');
     const travelDateObj = new Date(`${year}-${month}-${day}`);
 
-    // ✅ Tính tổng giá
-    let totalPrice = tour.price; // 👉 Giá gốc tour
+    // ✅ Tính tổng tiền
+    let totalPrice = tour.price; // Bắt đầu với giá tour gốc
+    totalPrice += quantity_nguoiLon * DEFAULT_ADULT_PRICE;
+    totalPrice += quantity_treEm * DEFAULT_CHILD_PRICE;
 
-    // ✅ Tính giá theo người lớn và trẻ em
-    totalPrice += (quantity_nguoiLon * DEFAULT_ADULT_PRICE);
-    totalPrice += (quantity_treEm * DEFAULT_CHILD_PRICE);
-
-    // ✅ Xử lý phụ thu từ dịch vụ option
-    const selectedOptionIds = Object.values(selectedOptions)
+    // ✅ Xử lý option service nếu có
+    const selectedOptionIds = optionServices
+      .map(opt => opt.option_service_id)
       .filter(id => mongoose.Types.ObjectId.isValid(id));
 
     if (selectedOptionIds.length > 0) {
@@ -45,7 +44,7 @@ exports.createBooking = async (req, res) => {
       totalPrice += extra;
     }
 
-    // ✅ Tạo booking
+    // ✅ Tạo bản booking
     const newBooking = new Booking({
       user_id,
       tour_id,
@@ -61,7 +60,7 @@ exports.createBooking = async (req, res) => {
 
     await newBooking.save();
 
-    // ✅ Lưu dịch vụ đã chọn (nếu có)
+    // ✅ Lưu option service được chọn (nếu có)
     if (selectedOptionIds.length > 0) {
       const bookingOptions = selectedOptionIds.map(optId => ({
         booking_id: newBooking._id,
