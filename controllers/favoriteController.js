@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Favorite = require('../schema/favoriteSchema');
 // Thêm yêu thích tour
 exports.addFavorite = async (req, res) => {
@@ -33,7 +34,11 @@ exports.removeFavorite = async (req, res) => {
 
     res.status(200).json({ message: 'Đã xoá khỏi yêu thích' });
   } catch (error) {
-    res.status(500).json({ message: 'Lỗi khi xoá yêu thích', error });
+    console.error('🔥 removeFavorite error:', error);
+    res.status(500).json({
+      message: 'Lỗi khi xoá yêu thích',
+      error: error.message
+    });
   }
 };
 
