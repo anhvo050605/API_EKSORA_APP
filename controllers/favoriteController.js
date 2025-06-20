@@ -17,7 +17,15 @@ exports.addFavorite = async (req, res) => {
 exports.removeFavorite = async (req, res) => {
   try {
     const { user_id, tour_id } = req.body;
-    const result = await Favorite.findOneAndDelete({ user_id, tour_id });
+
+    if (!mongoose.Types.ObjectId.isValid(user_id) || !mongoose.Types.ObjectId.isValid(tour_id)) {
+      return res.status(400).json({ message: 'ID không hợp lệ' });
+    }
+
+    const result = await Favorite.findOneAndDelete({
+      user_id: mongoose.Types.ObjectId(user_id),
+      tour_id: mongoose.Types.ObjectId(tour_id),
+    });
 
     if (!result) {
       return res.status(404).json({ message: 'Không tìm thấy yêu thích để xoá' });
