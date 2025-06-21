@@ -17,31 +17,29 @@ exports.addFavorite = async (req, res) => {
 // Xoá yêu thích tour
 exports.removeFavorite = async (req, res) => {
   try {
+    console.log('🔥 removeFavorite payload:', req.body);
     const { user_id, tour_id } = req.body;
 
-    if (!mongoose.Types.ObjectId.isValid(user_id) || !mongoose.Types.ObjectId.isValid(tour_id)) {
-      return res.status(400).json({ message: 'ID không hợp lệ' });
+    if (!user_id || !tour_id) {
+      return res.status(400).json({ message: 'Thiếu user_id hoặc tour_id' });
     }
 
-    const result = await Favorite.findOneAndDelete({
-      user_id: mongoose.Types.ObjectId(user_id),
-      tour_id: mongoose.Types.ObjectId(tour_id),
-    });
+    // Thử tìm mà không ép ObjectId
+    const result = await Favorite.findOneAndDelete({ user_id, tour_id });
 
     if (!result) {
       return res.status(404).json({ message: 'Không tìm thấy yêu thích để xoá' });
     }
 
-    res.status(200).json({ message: 'Đã xoá khỏi yêu thích' });
+    return res.status(200).json({ message: 'Đã xoá khỏi yêu thích' });
   } catch (error) {
     console.error('🔥 removeFavorite error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       message: 'Lỗi khi xoá yêu thích',
       error: error.message
     });
   }
 };
-
 // Lấy danh sách yêu thích của người dùng
 exports.getFavoritesByUser = async (req, res) => {
   try {
