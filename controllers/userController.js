@@ -26,3 +26,11 @@ exports.updateProfile = async (req, res) => {
     res.status(500).json({ message: 'Lỗi khi cập nhật thông tin', error });
   }
 };
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find().select('-password -otp -otpExpiry -resetPasswordOTP -resetPasswordExpires');
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ message: 'Lỗi khi lấy danh sách người dùng', error });
+  }
+};
