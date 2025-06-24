@@ -34,7 +34,12 @@ const getReviews = async (req, res) => {
     if (req.query.tourId) filter['tour.id'] = req.query.tourId;
     if (req.query.userId) filter['user.id'] = req.query.userId;
 
-    const reviews = await Review.find(filter);
+    const reviews = await Review.find(filter)
+      .populate({
+        path: 'user.id',
+        select: 'name avatarUrl'  // 👈 Chỉ lấy tên và avatar
+      });
+
     res.status(200).json(reviews);
   } catch (error) {
     res.status(500).json({ message: 'Lỗi khi lấy review', error: error.message });
