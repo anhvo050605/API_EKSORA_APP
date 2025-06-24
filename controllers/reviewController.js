@@ -12,8 +12,8 @@ const createReview = async (req, res) => {
 
     const newReview = new Review({
       promotion_id,
-      user: userId,   // 👈 không cần user: { id: userId }
-      tour: tourId,
+      user: { id: userId },
+      tour: { id: tourId },
       rating,
       comment,
       status: status || 'pending'
@@ -31,13 +31,13 @@ const getReviews = async (req, res) => {
   try {
     const filter = {};
 
-    if (req.query.tourId) filter['tour'] = req.query.tourId;
-    if (req.query.userId) filter['user'] = req.query.userId;
+    if (req.query.tourId) filter['tour.id'] = req.query.tourId;
+    if (req.query.userId) filter['user.id'] = req.query.userId;
 
     const reviews = await Review.find(filter)
       .populate({
-        path: 'user',
-        select: 'name avatarUrl'
+        path: 'user.id',
+        select: 'name avatarUrl'  // 👈 Chỉ lấy tên và avatar
       });
 
     res.status(200).json(reviews);
@@ -80,4 +80,4 @@ const deleteReview = async (req, res) => {
 };
 
 
-module.exports = { createReview, getReviews, updateReview, deleteReview };
+module.exports = { createReview, getReviews,updateReview,deleteReview };
