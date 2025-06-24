@@ -35,8 +35,10 @@ const getReviews = async (req, res) => {
     if (req.query.userId) filter['user.id'] = req.query.userId;
 
     const reviews = await Review.find(filter)
-      .populate('user', 'name avatarUrl') // 👈 sửa lại
-      .populate('tour', 'name');
+      .populate({
+        path: 'user',
+        select: 'name avatarUrl' // 👈 chọn trường bạn muốn hiển thị
+      })
 
     res.status(200).json(reviews);
   } catch (error) {
