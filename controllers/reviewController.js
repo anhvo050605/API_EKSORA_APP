@@ -1,23 +1,19 @@
 const Review = require('../schema/reviewSchema');
-const mongoose = require('mongoose');
+
 // Tạo review mới
 const createReview = async (req, res) => {
   try {
     const { promotion_id, userId, tourId, rating, comment, status } = req.body;
 
     // Validate dữ liệu tối thiểu
-
-    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ message: 'userId không hợp lệ.' });
-    }
     if (!userId || !tourId || !rating) {
       return res.status(400).json({ message: 'userId, tourId và rating là bắt buộc.' });
     }
 
     const newReview = new Review({
       promotion_id,
-      user: { id: mongoose.Types.ObjectId(userId) },
-      tour: { id: mongoose.Types.ObjectId(tourId) },
+      user: { id: userId },
+      tour: { id: tourId },
       rating,
       comment,
       status: status || 'pending'
@@ -84,4 +80,4 @@ const deleteReview = async (req, res) => {
 };
 
 
-module.exports = { createReview, getReviews, updateReview, deleteReview };
+module.exports = { createReview, getReviews,updateReview,deleteReview };
