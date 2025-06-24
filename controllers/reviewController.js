@@ -35,10 +35,7 @@ const getReviews = async (req, res) => {
     if (req.query.userId) filter['user.id'] = req.query.userId;
 
     const reviews = await Review.find(filter)
-      .populate({
-        path: 'user.id',
-        select: 'name avatarUrl'  // 👈 Chỉ lấy tên và avatar
-      });
+        .populate({ path: 'user', select: 'name avatarUrl' })
 
     res.status(200).json(reviews);
   } catch (error) {
