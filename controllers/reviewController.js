@@ -31,11 +31,14 @@ const getReviews = async (req, res) => {
   try {
     const filter = {};
 
-    if (req.query.tourId) filter['tour.id'] = req.query.tourId;
-    if (req.query.userId) filter['user.id'] = req.query.userId;
+    if (req.query.tourId) filter['tour'] = req.query.tourId;
+    if (req.query.userId) filter['user'] = req.query.userId;
 
     const reviews = await Review.find(filter)
-      .populate('user', 'name avatarUrl');
+      .populate({
+        path: 'user',
+        select: 'name avatarUrl'
+      });
 
     res.status(200).json(reviews);
   } catch (error) {
