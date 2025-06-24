@@ -12,8 +12,8 @@ const createReview = async (req, res) => {
 
     const newReview = new Review({
       promotion_id,
-      user: userId,
-      tour: tourId,
+      user: { id: userId },
+      tour: { id: tourId },
       rating,
       comment,
       status: status || 'pending'
@@ -36,9 +36,9 @@ const getReviews = async (req, res) => {
 
     const reviews = await Review.find(filter)
       .populate({
-        path: 'user',
-        select: 'name avatarUrl' // 👈 chọn trường bạn muốn hiển thị
-      })
+        path: 'user.id',
+        select: 'name avatarUrl'  // 👈 Chỉ lấy tên và avatar
+      });
 
     res.status(200).json(reviews);
   } catch (error) {
@@ -80,4 +80,4 @@ const deleteReview = async (req, res) => {
 };
 
 
-module.exports = { createReview, getReviews, updateReview, deleteReview };
+module.exports = { createReview, getReviews,updateReview,deleteReview };
