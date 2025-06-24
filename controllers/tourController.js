@@ -72,7 +72,8 @@ const getTourDetail = async (req, res) => {
         };
       })
     );
-     const reviews = await Review.find({ 'tour.id': id }).lean();
+     const reviews = await Review.find({ 'tour.id': new mongoose.Types.ObjectId(id) }).lean();
+
 
     // Trả dữ liệu chi tiết
     res.status(200).json({
