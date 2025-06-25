@@ -52,7 +52,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 //mongodb://127.0.0.1:27017/
 // mongodb+srv://anhvo050605a:voanh050605@cluster0.4orqa.mongodb.net/
-mongoose.connect('mongodb+srv://anhvo050605a:voanh050605@cluster0.4orqa.mongodb.net/')
+mongoose.connect('mongodb+srv://anhvo050605a:voanh050605@cluster0.4orqa.mongodb.net/API_EKSORA')
   .then(() => console.log('>>>>>>>>>> DB Connected!!!!!!'))
   .catch(err => console.log('>>>>>>>>> DB Error: ', err));
 //===================================================================================================
