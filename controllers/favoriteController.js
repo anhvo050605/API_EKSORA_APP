@@ -31,12 +31,14 @@ exports.removeFavorite = async (req, res) => {
     ) {
       return res.status(400).json({ message: 'ID không hợp lệ' });
     }
-
+    console.log('📦 user_id:', user_id, typeof user_id);
+    console.log('📦 tour_id:', tour_id, typeof tour_id);
     // 2) Ép kiểu ObjectId trước khi query
     const filter = {
-      user_id: mongoose.Types.ObjectId(user_id),
-      tour_id: mongoose.Types.ObjectId(tour_id),
+      user_id: new mongoose.Types.ObjectId(user_id),
+      tour_id: new mongoose.Types.ObjectId(tour_id),
     };
+
     console.log('🔥 removeFavorite filter:', filter);
 
     // 3) Thực hiện xóa
