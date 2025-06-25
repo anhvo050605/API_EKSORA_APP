@@ -72,8 +72,9 @@ const getTourDetail = async (req, res) => {
         };
       })
     );
-     const reviews = await Review.find({ 'tour.id': new mongoose.Types.ObjectId(id) }).lean();
-
+     const reviews = await Review.find({ tour: id })
+      .populate('user', 'first_name last_name avatarUrl') 
+      .lean();
 
     // Trả dữ liệu chi tiết
     res.status(200).json({
