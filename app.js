@@ -32,20 +32,14 @@ const payos = new PayOS(
   '679844fa14db0d74a766e61d83a2bb3d712ae2fc8a4f4ef9d9e269c0a7eced22'
 );
 
-const YOUR_DOMAIN = 'http://160.250.246.76:3000'
+const YOUR_DOMAIN = 'http://localhost:3000'
 
 
 
 
 //============================================================================================================
 var app = express();
-app.use(cors({
-  origin: '*', // hoặc thay bằng 'https://your-frontend-domain.com' nếu muốn bảo mật hơn
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization','x-api-key','x-client-id'],
-}));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
@@ -54,22 +48,10 @@ app.get('/', (req, res) => {
 
 // 👉 Tạo link thanh toán
 app.post('/create-payment-link', async (req, res) => {
-  const {
-    amount,        // số nguyên VND
-    buyerName,     // VD "Tuấn Anh"
-    buyerEmail,    // VD "a@gmail.com"
-    buyerPhone,    // VD "0901234567"
-    buyerAddress   // VD "Cần Thơ"
-  } = req.body;
-
-  if (!amount || !buyerName) {
-    return res.status(400).json({ message: 'Thiếu amount hoặc buyerName' });
-  }
-
   const order = {
-    amount,
-    description: `Thanh toán của ${buyerName}`,
-    orderCode: `EKSORA_${Date.now()}`,
+    amount: 5000, // VND
+    description: 'Thanh toán sản phẩm ABC',
+    orderCode: Date.now(), // mã đơn duy nhất
     returnUrl: `${YOUR_DOMAIN}/success.html`,
     cancelUrl: `${YOUR_DOMAIN}/cancel.html`
   };
@@ -88,7 +70,11 @@ app.listen(3000, () => {
   console.log("✅ Server running at http://localhost:3000");
 });
 
-
+app.use(cors({
+  origin: '*', // hoặc thay bằng 'https://your-frontend-domain.com' nếu muốn bảo mật hơn
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization','x-api-key','x-client-id'],
+}));
 
 
 // view engine setup
@@ -96,7 +82,8 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
 
 app.use(logger('dev'));
-
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
