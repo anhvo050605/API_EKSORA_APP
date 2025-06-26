@@ -32,7 +32,7 @@ const payos = new PayOS(
   '679844fa14db0d74a766e61d83a2bb3d712ae2fc8a4f4ef9d9e269c0a7eced22'
 );
 
-const YOUR_DOMAIN = 'http://localhost:3000'
+const YOUR_DOMAIN = 'http://160.250.246.76:3000'
 
 
 
