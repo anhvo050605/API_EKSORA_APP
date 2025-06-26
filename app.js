@@ -5,12 +5,12 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 require('dotenv').config();
 console.log(">> ĐANG KIỂM TRA KEY - Checksum Key được nạp:", process.env.PAYOS_CHECKSUM_KEY);
-const cors = require('cors'); 
+const cors = require('cors');
 const PayOS = require('@payos/node');
 const mongoose = require('mongoose');
 require("./schema/userSchema");
 
-const authRoutes = require('./routes/authRoutes'); 
+const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const categoryRoutes = require('./routes/location_categoryRoutes');
 const tourRoutes = require('./routes/tourRoutes');
@@ -45,7 +45,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors({
   origin: '*', // hoặc thay bằng 'https://your-frontend-domain.com' nếu muốn bảo mật hơn
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization','x-api-key','x-client-id'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key', 'x-client-id'],
 }));
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'payment', 'index.html'));
@@ -62,9 +62,17 @@ app.post('/create-payment-link', async (req, res) => {
     description,
     orderCode,
     returnUrl,
-    cancelUrl
+    cancelUrl,
+    buyerName,
+    buyerEmail,
+    buyerPhone,
+    buyerAddress
   } = req.body;
-
+  console.log("🧾 Các trường được truyền:");
+  console.log("👤 Tên:", buyerName);
+  console.log("📧 Email:", buyerEmail);
+  console.log("📞 SĐT:", buyerPhone);
+  console.log("🏠 Địa chỉ:", buyerAddress)
   // Kiểm tra bắt buộc
   if (!amount || !description) {
     return res.status(400).json({ message: 'Thiếu amount hoặc description' });
@@ -78,12 +86,21 @@ app.post('/create-payment-link', async (req, res) => {
   // Ép kiểu orderCode nếu có, hoặc tạo mới an toàn
 
   const order = {
-    amount,
     description,
     orderCode: safeOrderCode,
     returnUrl: returnUrl || `${YOUR_DOMAIN}/success.html`,
-    cancelUrl: cancelUrl || `${YOUR_DOMAIN}/cancel.html`
+    cancelUrl: cancelUrl || `${YOUR_DOMAIN}/cancel.html`,
+    buyerName,
+    buyerEmail,
+    buyerPhone,
+    buyerAddress
+
   };
+  console.log("🧾 Các trường được truyền:");
+  console.log("👤 Tên:", buyerName);
+  console.log("📧 Email:", buyerEmail);
+  console.log("📞 SĐT:", buyerPhone);
+  console.log("🏠 Địa chỉ:", buyerAddress)
 
   console.log("📦 Dữ liệu gửi sang PayOS:", order);
 
@@ -159,12 +176,12 @@ app.use('/api/password', forgotPasswordRoute);
 
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
