@@ -48,13 +48,28 @@ app.get('/', (req, res) => {
 
 // 👉 Tạo link thanh toán
 app.post('/create-payment-link', async (req, res) => {
+  const {
+    amount,         // số tiền VND
+    description,    // mô tả đơn hàng
+    orderCode,      // (nếu muốn FE tự truyền)
+    returnUrl,      // url success
+    cancelUrl       // url cancel
+  } = req.body;
+
+  if (!amount || !description) {
+    return res.status(400).json({ message: 'Thiếu amount hoặc description' });
+  }
+    const code = orderCode || `EKSORA_${Date.now()}`;
   const order = {
-    amount: 5000, // VND
-    description: 'Thanh toán sản phẩm ABC',
-    orderCode: Date.now(), // mã đơn duy nhất
-    returnUrl: `${YOUR_DOMAIN}/success.html`,
-    cancelUrl: `${YOUR_DOMAIN}/cancel.html`
+    amount,
+    description,
+    orderCode: code,
+    returnUrl: returnUrl || `${YOUR_DOMAIN}/success.html`,
+    cancelUrl: cancelUrl || `${YOUR_DOMAIN}/cancel.html`
   };
+
+
+
 
   try {
     const paymentLink = await payos.createPaymentLink(order);
