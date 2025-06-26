@@ -9,6 +9,7 @@ const cors = require('cors');
 const PayOS = require('@payos/node');
 const mongoose = require('mongoose');
 require("./schema/userSchema");
+const Booking = require('./schema/bookingSchema');
 
 const authRoutes = require('./routes/authRoutes'); 
 const userRoutes = require('./routes/userRoutes');
@@ -26,6 +27,8 @@ const serviceRoutes = require('./routes/serviceRoutes');
 const bookingOptionServiceRoutes = require('./routes/bookingOptionServiceRoutes');
 const tourServiceRoutes = require('./routes/tourServiceRoutes');
 const forgotPasswordRoute = require('./routes/forgotPasswordRoute');
+const transactionRoutes = require('./routes/transactionRoutes');
+
 const payos = new PayOS(
   'af5b66e1-254c-4934-b883-937882df00f4',
   '8d75fba6-789f-4ea4-8a3f-af375140662d',
@@ -51,7 +54,7 @@ app.post('/create-payment-link', async (req, res) => {
   const order = {
     amount: 5000, // VND
     description: 'Thanh toán sản phẩm ABC',
-    orderCode: Date.now(), // mã đơn duy nhất
+    orderCode: 10, // mã đơn duy nhất
     returnUrl: `${YOUR_DOMAIN}/success.html`,
     cancelUrl: `${YOUR_DOMAIN}/cancel.html`
   };
@@ -65,7 +68,28 @@ app.post('/create-payment-link', async (req, res) => {
     res.status(500).send("Tạo thanh toán thất bại.");
   }
 });
+// 👉 Nhận webhook từ PayOS url:  https://57df-2001-ee0-e9f6-51d0-dc49-8afd-9b87-dc41.ngrok-free.app/receive-webhook
+app.post('/transactions/receive-webhook', express.json(), async (req, res) => {
+  try {
+    console.log('🔔 Nhận webhook từ PayOS:', req.body);
 
+    const { orderCode, status } = req.body;
+
+    if (status === 'PAID') {
+      // 🔄 Gọi hàm cập nhật trạng thái booking trong DB
+      await Booking.findOneAndUpdate(
+        { orderCode },
+        { status: 'Đã thanh toán' }
+      );
+      console.log(`✅ Đã cập nhật trạng thái booking với mã đơn ${orderCode}`);
+    }
+
+    res.status(200).send('OK');
+  } catch (err) {
+    console.error('❌ Lỗi xử lý webhook:', err);
+    res.status(500).send('Webhook error');
+  }
+});
 app.listen(3000, () => {
   console.log("✅ Server running at http://localhost:3000");
 });
@@ -127,7 +151,7 @@ app.use('/api/tour-services', tourServiceRoutes);
 
 app.use('/api/password', forgotPasswordRoute);
 
-
+app.use('/api/transactions', transactionRoutes);
 
 //===================================================================================================
 
