@@ -57,50 +57,35 @@ function generateSafeOrderCode() {
 app.post('/create-payment-link', async (req, res) => {
   console.log("📦 Payload body nhận từ FE:", req.body);
 
-  const {
+   const {
     amount,
     description,
     orderCode,
     returnUrl,
-    cancelUrl,
-    buyerName,
-    buyerEmail,
-    buyerPhone,
-    buyerAddress
+    cancelUrl
   } = req.body;
-  console.log("🧾 Các trường được truyền:");
-  console.log("👤 Tên:", buyerName);
-  console.log("📧 Email:", buyerEmail);
-  console.log("📞 SĐT:", buyerPhone);
-  console.log("🏠 Địa chỉ:", buyerAddress)
-  // Kiểm tra bắt buộc
-  if (!amount || !description) {
+
+    if (!amount || !description) {
+    console.error("❌ Thiếu amount hoặc description");
     return res.status(400).json({ message: 'Thiếu amount hoặc description' });
   }
 
-  let safeOrderCode = Number(orderCode);
+
+   let safeOrderCode = Number(orderCode);
   if (isNaN(safeOrderCode) || safeOrderCode <= 0 || safeOrderCode > Number.MAX_SAFE_INTEGER) {
-    safeOrderCode = generateSafeOrderCode();
+    safeOrderCode = Math.floor(1000000000 + Math.random() * 9000000000);
   }
 
   // Ép kiểu orderCode nếu có, hoặc tạo mới an toàn
 
   const order = {
+    amount,
     description,
     orderCode: safeOrderCode,
     returnUrl: returnUrl || `${YOUR_DOMAIN}/success.html`,
-    cancelUrl: cancelUrl || `${YOUR_DOMAIN}/cancel.html`,
-    buyerName,
-    buyerEmail,
-    buyerPhone,
-    buyerAddress
-
+    cancelUrl: cancelUrl || `${YOUR_DOMAIN}/cancel.html`
   };
-  console.log("🧾 Các trường được truyền:");
-  console.log("👤 Tên:", buyerName);
-  console.log("📧 Email:", buyerEmail);
-  console.log("📞 SĐT:", buyerPhone);
-  console.log("🏠 Địa chỉ:", buyerAddress)
+  
 
   console.log("📦 Dữ liệu gửi sang PayOS:", order);
 
