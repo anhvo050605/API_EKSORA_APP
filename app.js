@@ -48,22 +48,44 @@ app.get('/', (req, res) => {
 
 // 👉 Tạo link thanh toán
 app.post('/create-payment-link', async (req, res) => {
-  
+  console.log("📦 Payload body nhận từ FE:", req.body);
+
+  const {
+    amount,
+    description,
+    orderCode,
+    returnUrl,
+    cancelUrl
+  } = req.body;
+
+  // Kiểm tra bắt buộc
+  if (!amount || !description) {
+    return res.status(400).json({ message: 'Thiếu amount hoặc description' });
+  }
+
+  // Ép kiểu orderCode nếu có, hoặc tạo mới an toàn
+  const parsedOrderCode = Number(orderCode);
+  const safeOrderCode = (!isNaN(parsedOrderCode) && parsedOrderCode > 0 && parsedOrderCode <= Number.MAX_SAFE_INTEGER)
+    ? parsedOrderCode
+    : Math.floor(Date.now() / 1000); // fallback
+
   const order = {
-    amount: 5000, // VND
-    description: 'Thanh toán sản phẩm ABC',
-    orderCode: Date.now(), // mã đơn duy nhất
-    returnUrl: `${YOUR_DOMAIN}/success.html`,
-    cancelUrl: `${YOUR_DOMAIN}/cancel.html`
+    amount,
+    description,
+    orderCode: safeOrderCode,
+    returnUrl: returnUrl || `${YOUR_DOMAIN}/success.html`,
+    cancelUrl: cancelUrl || `${YOUR_DOMAIN}/cancel.html`
   };
+
+  console.log("📦 Dữ liệu gửi sang PayOS:", order);
 
   try {
     const paymentLink = await payos.createPaymentLink(order);
-    // res.redirect(303, paymentLink.checkoutUrl);
+    console.log("✅ Link thanh toán:", paymentLink.checkoutUrl);
     res.json({ url: paymentLink.checkoutUrl });
   } catch (error) {
-    console.error("❌ Lỗi tạo link thanh toán:", error);
-    res.status(500).send("Tạo thanh toán thất bại.");
+    console.error("❌ Lỗi tạo link thanh toán:", error?.response?.data || error.message || error);
+    res.status(500).json({ message: "Tạo thanh toán thất bại." });
   }
 });
 
