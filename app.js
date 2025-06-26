@@ -40,13 +40,6 @@ const YOUR_DOMAIN = 'http://localhost:3000'
 //============================================================================================================
 var app = express();
 
-app.use(cors({
-  origin: '*', // hoặc thay bằng 'https://your-frontend-domain.com' nếu muốn bảo mật hơn
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization','x-api-key','x-client-id'],
-}));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
@@ -55,31 +48,15 @@ app.get('/', (req, res) => {
 
 // 👉 Tạo link thanh toán
 app.post('/create-payment-link', async (req, res) => {
-  console.log("🧾 Content-Type:", req.headers['content-type']);
-  console.log("📦 BODY:", req.body);
+  const  amount = req.body;
 
-  const {
-    amount,         // số tiền VND
-    description,    // mô tả đơn hàng
-    orderCode,      // (nếu muốn FE tự truyền)
-    returnUrl,      // url success
-    cancelUrl       // url cancel
-  } = req.body;
-
-  if (!amount || !description) {
-    return res.status(400).json({ message: 'Thiếu amount hoặc description' });
-  }
-    const code = orderCode || `EKSORA_${Date.now()}`;
   const order = {
-    amount,
-    description,
-    orderCode: code,
-    returnUrl: returnUrl || `${YOUR_DOMAIN}/success.html`,
-    cancelUrl: cancelUrl || `${YOUR_DOMAIN}/cancel.html`
+    amount: amount, // VND
+    description: 'Thanh toán sản phẩm ABC',
+    orderCode: Date.now(), // mã đơn duy nhất
+    returnUrl: `${YOUR_DOMAIN}/success.html`,
+    cancelUrl: `${YOUR_DOMAIN}/cancel.html`
   };
-
-
-
 
   try {
     const paymentLink = await payos.createPaymentLink(order);
@@ -95,7 +72,11 @@ app.listen(3000, () => {
   console.log("✅ Server running at http://localhost:3000");
 });
 
-
+app.use(cors({
+  origin: '*', // hoặc thay bằng 'https://your-frontend-domain.com' nếu muốn bảo mật hơn
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization','x-api-key','x-client-id'],
+}));
 
 
 // view engine setup
@@ -103,9 +84,10 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
 
 app.use(logger('dev'));
-
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-
+app.use(express.static(path.join(__dirname, 'public')));
 
 
 
