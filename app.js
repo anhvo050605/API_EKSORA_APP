@@ -48,10 +48,22 @@ app.get('/', (req, res) => {
 
 // 👉 Tạo link thanh toán
 app.post('/create-payment-link', async (req, res) => {
+  const {
+    amount,        // số nguyên VND
+    buyerName,     // VD "Tuấn Anh"
+    buyerEmail,    // VD "a@gmail.com"
+    buyerPhone,    // VD "0901234567"
+    buyerAddress   // VD "Cần Thơ"
+  } = req.body;
+
+  if (!amount || !buyerName) {
+    return res.status(400).json({ message: 'Thiếu amount hoặc buyerName' });
+  }
+
   const order = {
-    amount: 5000, // VND
-    description: 'Thanh toán sản phẩm ABC',
-    orderCode: Date.now(), // mã đơn duy nhất
+    amount,
+    description: `Thanh toán của ${buyerName}`,
+    orderCode: `EKSORA_${Date.now()}`,
     returnUrl: `${YOUR_DOMAIN}/success.html`,
     cancelUrl: `${YOUR_DOMAIN}/cancel.html`
   };
