@@ -4,12 +4,12 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "dev": "nodemon ./bin/www"
+    "dev": "nodemon --watch create-payment.js"
   },
   "dependencies": {
     "@payos/node": "^1.0.10",
     "api-eksora": "file:",
-    "axios": "^1.9.0",
+    "axios": "^1.10.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "cookie-parser": "~1.4.4",
