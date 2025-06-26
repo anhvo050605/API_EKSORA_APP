@@ -5,12 +5,12 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 require('dotenv').config();
 console.log(">> ĐANG KIỂM TRA KEY - Checksum Key được nạp:", process.env.PAYOS_CHECKSUM_KEY);
-const cors = require('cors');
+const cors = require('cors'); 
 const PayOS = require('@payos/node');
 const mongoose = require('mongoose');
 require("./schema/userSchema");
 
-const authRoutes = require('./routes/authRoutes');
+const authRoutes = require('./routes/authRoutes'); 
 const userRoutes = require('./routes/userRoutes');
 const categoryRoutes = require('./routes/location_categoryRoutes');
 const tourRoutes = require('./routes/tourRoutes');
@@ -39,63 +39,30 @@ const YOUR_DOMAIN = 'http://localhost:3000'
 
 //============================================================================================================
 var app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(cors({
-  origin: '*', // hoặc thay bằng 'https://your-frontend-domain.com' nếu muốn bảo mật hơn
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key', 'x-client-id'],
-}));
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'payment', 'index.html'));
 });
-function generateSafeOrderCode() {
-  return Math.floor(1000000000 + Math.random() * 9000000000); // Tạo số có 10 chữ số
-}
+
 // 👉 Tạo link thanh toán
 app.post('/create-payment-link', async (req, res) => {
-  console.log("📦 Payload body nhận từ FE:", req.body);
-
-   const {
-    amount,
-    description,
-    orderCode,
-    returnUrl,
-    cancelUrl
-  } = req.body;
-
-    if (!amount || !description) {
-    console.error("❌ Thiếu amount hoặc description");
-    return res.status(400).json({ message: 'Thiếu amount hoặc description' });
-  }
-
-
-   let safeOrderCode = Number(orderCode);
-  if (isNaN(safeOrderCode) || safeOrderCode <= 0 || safeOrderCode > Number.MAX_SAFE_INTEGER) {
-    safeOrderCode = Math.floor(1000000000 + Math.random() * 9000000000);
-  }
-
-  // Ép kiểu orderCode nếu có, hoặc tạo mới an toàn
-
   const order = {
-    amount,
-    description,
-    orderCode: safeOrderCode,
-    returnUrl: returnUrl || `${YOUR_DOMAIN}/success.html`,
-    cancelUrl: cancelUrl || `${YOUR_DOMAIN}/cancel.html`
+    amount: 5000, // VND
+    description: 'Thanh toán sản phẩm ABC',
+    orderCode: Date.now(), // mã đơn duy nhất
+    returnUrl: `${YOUR_DOMAIN}/success.html`,
+    cancelUrl: `${YOUR_DOMAIN}/cancel.html`
   };
-  
-
-  console.log("📦 Dữ liệu gửi sang PayOS:", order);
 
   try {
     const paymentLink = await payos.createPaymentLink(order);
-    console.log("✅ Link thanh toán:", paymentLink.checkoutUrl);
+    // res.redirect(303, paymentLink.checkoutUrl);
     res.json({ url: paymentLink.checkoutUrl });
   } catch (error) {
-    console.error("❌ Lỗi tạo link thanh toán:", error?.response?.data || error.message || error);
-    res.status(500).json({ message: "Tạo thanh toán thất bại." });
+    console.error("❌ Lỗi tạo link thanh toán:", error);
+    res.status(500).send("Tạo thanh toán thất bại.");
   }
 });
 
@@ -103,7 +70,11 @@ app.listen(3000, () => {
   console.log("✅ Server running at http://localhost:3000");
 });
 
-
+app.use(cors({
+  origin: '*', // hoặc thay bằng 'https://your-frontend-domain.com' nếu muốn bảo mật hơn
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization','x-api-key','x-client-id'],
+}));
 
 
 // view engine setup
@@ -111,9 +82,10 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
 
 app.use(logger('dev'));
-
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-
+app.use(express.static(path.join(__dirname, 'public')));
 
 
 
@@ -161,12 +133,12 @@ app.use('/api/password', forgotPasswordRoute);
 
 
 // catch 404 and forward to error handler
-app.use(function (req, res, next) {
+app.use(function(req, res, next) {
   next(createError(404));
 });
 
 // error handler
-app.use(function (err, req, res, next) {
+app.use(function(err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
