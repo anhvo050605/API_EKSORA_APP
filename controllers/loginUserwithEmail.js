@@ -45,7 +45,8 @@ const loginUserwithEmail = async (req, res) => {
         firstName: user.first_name || '',
         lastName: user.last_name || '',
         email: user.email || '',
-        phone: user.phone || ''
+        phone: user.phone || '',
+        address: user.address || '',
       }
     });
 
