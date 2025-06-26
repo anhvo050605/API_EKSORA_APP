@@ -55,6 +55,9 @@ app.get('/', (req, res) => {
 
 // 👉 Tạo link thanh toán
 app.post('/create-payment-link', async (req, res) => {
+  console.log("🧾 Content-Type:", req.headers['content-type']);
+  console.log("📦 BODY:", req.body);
+
   const {
     amount,         // số tiền VND
     description,    // mô tả đơn hàng
