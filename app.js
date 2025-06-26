@@ -48,10 +48,9 @@ app.get('/', (req, res) => {
 
 // 👉 Tạo link thanh toán
 app.post('/create-payment-link', async (req, res) => {
-  const  amount = req.body;
-
+  
   const order = {
-    amount: amount, // VND
+    amount: 5000, // VND
     description: 'Thanh toán sản phẩm ABC',
     orderCode: Date.now(), // mã đơn duy nhất
     returnUrl: `${YOUR_DOMAIN}/success.html`,
