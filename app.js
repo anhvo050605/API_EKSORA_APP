@@ -45,7 +45,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'payment', 'index.html'));
 });
-
+function generateSafeOrderCode() {
+  return Math.floor(1000000000 + Math.random() * 9000000000); // Tạo số có 10 chữ số
+}
 // 👉 Tạo link thanh toán
 app.post('/create-payment-link', async (req, res) => {
   console.log("📦 Payload body nhận từ FE:", req.body);
@@ -63,11 +65,12 @@ app.post('/create-payment-link', async (req, res) => {
     return res.status(400).json({ message: 'Thiếu amount hoặc description' });
   }
 
+  let safeOrderCode = Number(orderCode);
+  if (isNaN(safeOrderCode) || safeOrderCode <= 0 || safeOrderCode > Number.MAX_SAFE_INTEGER) {
+    safeOrderCode = generateSafeOrderCode();
+  }
+
   // Ép kiểu orderCode nếu có, hoặc tạo mới an toàn
-  const parsedOrderCode = Number(orderCode);
-  const safeOrderCode = (!isNaN(parsedOrderCode) && parsedOrderCode > 0 && parsedOrderCode <= Number.MAX_SAFE_INTEGER)
-    ? parsedOrderCode
-    : Math.floor(Date.now() / 1000); // fallback
 
   const order = {
     amount,
