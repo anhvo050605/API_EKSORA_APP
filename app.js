@@ -51,7 +51,7 @@ app.post('/create-payment-link', async (req, res) => {
   const order = {
     amount: 5000, // VND
     description: 'Thanh toán sản phẩm ABC',
-    orderCode: 10, // mã đơn duy nhất
+    orderCode: Date.now(), // mã đơn duy nhất
     returnUrl: `${YOUR_DOMAIN}/success.html`,
     cancelUrl: `${YOUR_DOMAIN}/cancel.html`
   };
