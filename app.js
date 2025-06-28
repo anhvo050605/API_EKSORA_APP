@@ -58,17 +58,14 @@ app.post('/create-payment-link', express.json(), async (req, res) => {
       quantity_treEm,
       coin,
       totalPrice,
-      optionServices,
-      userInfo
+      optionServices
     } = req.body;
-      if (!user_id || !tour_id || !travel_date || !totalPrice) {
-      throw new Error("Thiếu thông tin bắt buộc (user_id, tour_id, travel_date, totalPrice)");
+
+    if (!user_id || !tour_id || !travel_date || !totalPrice) {
+      return res.status(400).json({ message: "Thiếu dữ liệu bắt buộc." });
     }
 
-    console.log("✅ Đã nhận user_id:", user_id);
-    console.log("✅ Đã nhận totalPrice:", totalPrice);
-    console.log("✅ Dạng optionServices:", Array.isArray(optionServices), optionServices);
-
+    // 1. Lưu booking
     const newBooking = new Booking({
       user_id,
       tour_id,
@@ -81,19 +78,18 @@ app.post('/create-payment-link', express.json(), async (req, res) => {
       price_treEm: 150000,
       status: 'pending'
     });
-
     await newBooking.save();
 
-    // ✅ Nếu có dịch vụ tuỳ chọn thì lưu vào bảng trung gian
+    // 2. Nếu có dịch vụ tùy chọn thì lưu
     if (Array.isArray(optionServices) && optionServices.length > 0) {
-      const optionsToSave = optionServices.map(opt => ({
+      const optionData = optionServices.map(opt => ({
         booking_id: newBooking._id,
         option_service_id: opt.option_service_id
       }));
-      await BookingOptionService.insertMany(optionsToSave);
+      await BookingOptionService.insertMany(optionData);
     }
 
-    // ✅ Gọi PayOS để tạo link thanh toán
+    // 3. Tạo link thanh toán
     const order = {
       amount: totalPrice,
       description: `Thanh toán đơn hàng #${newBooking._id}`,
@@ -104,15 +100,17 @@ app.post('/create-payment-link', express.json(), async (req, res) => {
 
     const paymentLink = await payos.createPaymentLink(order);
 
-    res.json({
+    res.status(200).json({
       url: paymentLink.checkoutUrl,
       booking_id: newBooking._id
     });
+
   } catch (error) {
-    console.error("❌ Lỗi tạo link thanh toán:", error);
+    console.error("❌ Lỗi tạo thanh toán:", error);
     res.status(500).json({ message: "Tạo thanh toán thất bại", error: error.message });
   }
 });
+
 
 // 👉 Nhận webhook từ PayOS url:  https://57df-2001-ee0-e9f6-51d0-dc49-8afd-9b87-dc41.ngrok-free.app/receive-webhook
 app.post('/receive-webhook', express.json(), async (req, res) => {
