@@ -5,12 +5,12 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 require('dotenv').config();
 console.log(">> ĐANG KIỂM TRA KEY - Checksum Key được nạp:", process.env.PAYOS_CHECKSUM_KEY);
-const cors = require('cors'); 
+const cors = require('cors');
 const PayOS = require('@payos/node');
 const mongoose = require('mongoose');
 require("./schema/userSchema");
 
-const authRoutes = require('./routes/authRoutes'); 
+const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const categoryRoutes = require('./routes/location_categoryRoutes');
 const tourRoutes = require('./routes/tourRoutes');
@@ -45,39 +45,82 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'payment', 'index.html'));
 });
+const Booking = require('./schema/bookingSchema');
+const BookingOptionService = require('./schema/bookingOptionServiceSchema');
 
-// 👉 Tạo link thanh toán
-app.post('/create-payment-link', async (req, res) => {
-  const order = {
-    amount: 5000, // VND
-    description: 'Thanh toán sản phẩm ABC',
-    orderCode: Date.now(), // mã đơn duy nhất
-    returnUrl: `${YOUR_DOMAIN}/success.html`,
-    cancelUrl: `${YOUR_DOMAIN}/cancel.html`
-  };
-
+app.post('/create-payment-link', express.json(), async (req, res) => {
   try {
+    const {
+      user_id,
+      tour_id,
+      travel_date,
+      quantity_nguoiLon,
+      quantity_treEm,
+      coin,
+      totalPrice,
+      optionServices // [{ option_service_id }]
+    } = req.body;
+
+    // ✅ Tạo bản booking trước (status: pending)
+    const newBooking = new Booking({
+      user_id,
+      tour_id,
+      travel_date,
+      quantity_nguoiLon,
+      quantity_treEm,
+      coin,
+      totalPrice,
+      price_nguoiLon: 300000,
+      price_treEm: 150000,
+      status: 'pending'
+    });
+
+    await newBooking.save();
+
+    // ✅ Nếu có dịch vụ tuỳ chọn thì lưu vào bảng trung gian
+    if (Array.isArray(optionServices) && optionServices.length > 0) {
+      const optionsToSave = optionServices.map(opt => ({
+        booking_id: newBooking._id,
+        option_service_id: opt.option_service_id
+      }));
+      await BookingOptionService.insertMany(optionsToSave);
+    }
+
+    // ✅ Gọi PayOS để tạo link thanh toán
+    const order = {
+      amount: totalPrice,
+      description: `Thanh toán đơn hàng #${newBooking._id}`,
+      orderCode: newBooking._id.toString(),
+      returnUrl: `${YOUR_DOMAIN}/success.html`,
+      cancelUrl: `${YOUR_DOMAIN}/cancel.html`
+    };
+
     const paymentLink = await payos.createPaymentLink(order);
-    // res.redirect(303, paymentLink.checkoutUrl);
-    res.json({ url: paymentLink.checkoutUrl });
+
+    res.json({
+      url: paymentLink.checkoutUrl,
+      booking_id: newBooking._id
+    });
   } catch (error) {
     console.error("❌ Lỗi tạo link thanh toán:", error);
-    res.status(500).json({ message: "Tạo thanh toán thất bại." });
+    res.status(500).json({ message: "Tạo thanh toán thất bại", error: error.message });
   }
 });
+
 // 👉 Nhận webhook từ PayOS url:  https://57df-2001-ee0-e9f6-51d0-dc49-8afd-9b87-dc41.ngrok-free.app/receive-webhook
 app.post('/receive-webhook', express.json(), async (req, res) => {
   try {
     const payload = req.body;
     console.log("📩 Nhận webhook từ PayOS:", payload);
 
-    if (payload.status !== 'PAID') {
+    if ((payload.status || '').toUpperCase() !== 'PAID') {
       return res.status(200).json({ message: 'Không phải thanh toán thành công, bỏ qua' });
     }
-
+    console.log("📦 Webhook status nhận về là:", payload.status);
+    
     const Transaction = require('./schema/transactionSchema'); // Đảm bảo đã định nghĩa schema Transaction
     const Booking = require('./schema/bookingSchema');
-
+    const bookingId = mongoose.Types.ObjectId(payload.orderCode);
     // ✅ 1. Tạo transaction mới
     const transaction = new Transaction({
       amount: payload.amount,
@@ -90,7 +133,7 @@ app.post('/receive-webhook', express.json(), async (req, res) => {
 
     // ✅ 2. Gắn transaction vào booking tương ứng
     const updatedBooking = await Booking.findByIdAndUpdate(
-      payload.orderCode, // booking._id đã lưu trong orderCode
+      bookingId, // booking._id đã lưu trong orderCode
       {
         transaction_id: transaction._id,
         status: 'confirmed'
@@ -118,7 +161,7 @@ app.listen(3000, () => {
 app.use(cors({
   origin: '*', // hoặc thay bằng 'https://your-frontend-domain.com' nếu muốn bảo mật hơn
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization','x-api-key','x-client-id'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key', 'x-client-id'],
 }));
 
 
@@ -178,12 +221,12 @@ app.use('/api/password', forgotPasswordRoute);
 
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
