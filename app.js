@@ -65,6 +65,11 @@ app.post('/create-payment-link', express.json(), async (req, res) => {
       return res.status(400).json({ message: "Thiếu dữ liệu bắt buộc." });
     }
 
+    console.log("👤 user_id:", user_id, typeof user_id);
+    console.log("🗺 tour_id:", tour_id, typeof tour_id);
+    console.log("📅 travel_date:", travel_date, typeof travel_date);
+    console.log("💰 totalPrice:", totalPrice, typeof totalPrice);
+
     // 1. Lưu booking
     const newBooking = new Booking({
       user_id,
@@ -122,7 +127,7 @@ app.post('/receive-webhook', express.json(), async (req, res) => {
       return res.status(200).json({ message: 'Không phải thanh toán thành công, bỏ qua' });
     }
     console.log("📦 Webhook status nhận về là:", payload.status);
-    
+
     const Transaction = require('./schema/transactionSchema'); // Đảm bảo đã định nghĩa schema Transaction
     const Booking = require('./schema/bookingSchema');
     const bookingId = mongoose.Types.ObjectId(payload.orderCode);
