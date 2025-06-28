@@ -3,7 +3,7 @@ const router = express.Router();
 const voucherController = require('../controllers/voucherController');
 
 router.post('/', voucherController.createVoucher);
-router.get('/', voucherController.getAllVouchers);
+router.get('/', voucherController.getAllVouchers); // thêm ?tour_id=...
 router.get('/:code', voucherController.getVoucherByCode);
 router.delete('/:id', voucherController.deleteVoucher);
 

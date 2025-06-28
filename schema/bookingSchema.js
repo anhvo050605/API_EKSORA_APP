@@ -12,7 +12,7 @@ const bookingSchema = new mongoose.Schema({
   price_treEm: { type: Number, default: 0 },
   totalPrice: { type: Number, default: 0 },
   transaction_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Transaction' },
-  voucher_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Voucher' },
+  // voucher_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Voucher' },
   status: { type: String, enum: ['pending', 'confirmed', 'cancelled'], default: 'pending' },
   created_at: { type: Date, default: Date.now }
 });

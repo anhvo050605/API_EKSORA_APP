@@ -2,12 +2,13 @@ const Voucher = require('../schema/voucherSchema');
 
 exports.createVoucher = async (req, res) => {
   try {
-    const { booking_id, code, discount, start_date, end_date } = req.body;
+    const { tour_id, code, discount, condition, start_date, end_date } = req.body;
 
     const voucher = new Voucher({
-      booking_id,
+      tour_id: tour_id || null,
       code,
       discount,
+      condition,
       start_date,
       end_date
     });
@@ -21,7 +22,16 @@ exports.createVoucher = async (req, res) => {
 
 exports.getAllVouchers = async (req, res) => {
   try {
-    const vouchers = await Voucher.find().populate('booking_id');
+    const { tour_id } = req.query;
+
+    let query = {};
+    if (tour_id) {
+      query.tour_id = tour_id;
+    } else {
+      query.tour_id = null; // voucher toàn app
+    }
+
+    const vouchers = await Voucher.find(query).populate('tour_id');
     res.status(200).json(vouchers);
   } catch (err) {
     res.status(500).json({ message: 'Lỗi khi lấy danh sách voucher' });

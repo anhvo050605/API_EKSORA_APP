@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
 
 const voucherSchema = new mongoose.Schema({
-  booking_id: {
+  tour_id: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Booking'
+    ref: 'Tour',
+    required: false // Nếu null thì là voucher toàn app
   },
   code: {
     type: String,
@@ -12,7 +13,11 @@ const voucherSchema = new mongoose.Schema({
   },
   discount: {
     type: Number,
-    required: true // Phần trăm giảm giá
+    required: true // phần trăm giảm giá
+  },
+  condition: {
+    type: String,
+    default: '' // điều kiện (ví dụ: "Đơn hàng từ 1.000.000đ")
   },
   start_date: {
     type: Date,

@@ -3,7 +3,8 @@ const Tour = require('../schema/tourSchema');
 const HighlightPlace = require('../schema/highlightPlaceSchema');
 const Service = require('../schema/serviceSchema');
 const OptionService = require('../schema/optionServiceSchema');
-const Review = require('../schema/reviewSchema'); 
+const Review = require('../schema/reviewSchema');
+const Voucher = require('../schema/voucherSchema');
 // Lấy tất cả tour
 const getAllTours = async (req, res) => {
   try {
@@ -72,16 +73,31 @@ const getTourDetail = async (req, res) => {
         };
       })
     );
-     const reviews = await Review.find({ tour: id })
-      .populate('user', 'first_name last_name avatarUrl') 
+    const reviews = await Review.find({ tour: id })
+      .populate('user', 'first_name last_name avatarUrl')
       .lean();
+    const now = new Date();
+    const vouchers = await Voucher.find({
+      $and: [
+        {
+          $or: [
+            { tour_id: new mongoose.Types.ObjectId(id) },
+            { tour_id: null } // Voucher toàn app
+          ]
+        },
+        { start_date: { $lte: now } },
+        { end_date: { $gte: now } },
+        { status: 'active' }
+      ]
+    });
+    console.log("Voucher tìm được:", vouchers.map(v => v.code));
 
     // Trả dữ liệu chi tiết
     res.status(200).json({
       tour,
       services: servicesWithOptions,
       highlights,
-      reviews
+      reviews,vouchers
     });
 
   } catch (error) {
@@ -109,5 +125,5 @@ const deleteTour = async (req, res) => {
 module.exports = {
   getAllTours,
   createTour,
-  getTourDetail,deleteTour
+  getTourDetail, deleteTour
 };

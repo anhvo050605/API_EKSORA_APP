@@ -11,7 +11,7 @@ exports.createBooking = async (req, res) => {
       tour_id,
       travel_date,
       coin,
-      voucher_id,
+      // voucher_id,
       quantity_nguoiLon = 0,
       quantity_treEm = 0,
       optionServices = [] // ✅ Nhận đúng mảng từ frontend
@@ -50,7 +50,7 @@ exports.createBooking = async (req, res) => {
       tour_id,
       travel_date: travelDateObj,
       coin,
-      voucher_id,
+      // voucher_id,
       quantity_nguoiLon,
       quantity_treEm,
       price_nguoiLon: DEFAULT_ADULT_PRICE,
