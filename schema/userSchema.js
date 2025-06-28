@@ -1,12 +1,29 @@
 const mongoose = require('mongoose');
 
-const transactionSchema = new mongoose.Schema({
-  amount: { type: Number, required: true },
-  payment_method: { type: String, default: 'PayOS' },
-  status: { type: String, enum: ['success', 'failed'], default: 'success' },
-  payment_date: { type: Date, default: Date.now },
-  transaction_id: { type: String }, // Mã giao dịch từ PayOS
-  order_code: { type: String }, // Chính là booking._id từ orderCode PayOS
-});
+const userSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  first_name: { type: String },
+  last_name: { type: String },
+  phone: { type: String },
+  address: { type: String },
 
-module.exports = mongoose.model('Transaction', transactionSchema);
+  role: {
+    type: String,
+    enum: ['user', 'admin', 'supplier'],
+    default: 'user'
+  },
+
+  avatar: { type: String },           
+  is_active: { type: Boolean, default: true },
+
+  coin_total: { type: Number, default: 0 },   
+  created_at: { type: Date, default: Date.now },
+
+  resetPasswordOTP: { type: String },
+  resetPasswordExpires: { type: Date },
+
+  otp: { type: String },
+  otpExpiry: { type: Date }
+});
+module.exports = mongoose.model('User', userSchema);
