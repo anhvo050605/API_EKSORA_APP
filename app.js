@@ -9,6 +9,8 @@ const cors = require('cors');
 const PayOS = require('@payos/node');
 const mongoose = require('mongoose');
 require("./schema/userSchema");
+const Booking = require('./schema/bookingSchema');
+const Transaction = require('./schema/transactionSchema');
 
 const authRoutes = require('./routes/authRoutes'); 
 const userRoutes = require('./routes/userRoutes');
@@ -47,29 +49,99 @@ app.get('/', (req, res) => {
 });
 
 // 👉 Tạo link thanh toán
-app.post('/create-payment-link', async (req, res) => {
-  const order = {
-    amount: 5000, // VND
-    description: 'Thanh toán sản phẩm ABC',
-    orderCode: Date.now(), // mã đơn duy nhất
-    returnUrl: `${YOUR_DOMAIN}/success.html`,
-    cancelUrl: `${YOUR_DOMAIN}/cancel.html`
-  };
-
+app.post('/create-payment-link', express.json(), async (req, res) => {
   try {
+    const {
+      user_id,
+      tour_id,
+      travel_date,
+      quantity_nguoiLon,
+      quantity_treEm,
+      coin,
+      totalPrice,
+      optionServices,
+      userInfo // { name, email, phone, address }
+    } = req.body;
+
+    // ✅ 1. Lưu booking "pending"
+    const newBooking = new Booking({
+      user_id,
+      tour_id,
+      travel_date,
+      quantity_nguoiLon,
+      quantity_treEm,
+      price_nguoiLon: 300000,
+      price_treEm: 150000,
+      totalPrice,
+      coin,
+      status: 'pending'
+    });
+
+    await newBooking.save(); // 👉 lúc này đã có booking._id
+
+    // ✅ 2. Gọi PayOS tạo payment link
+    const order = {
+      amount: totalPrice,
+      description: `Thanh toán đơn hàng #${newBooking._id}`,
+      orderCode: newBooking._id.toString(), // 👈 dùng bookingId làm orderCode
+      returnUrl: `${YOUR_DOMAIN}/success.html`,
+      cancelUrl: `${YOUR_DOMAIN}/cancel.html`
+    };
+
     const paymentLink = await payos.createPaymentLink(order);
-    // res.redirect(303, paymentLink.checkoutUrl);
-    res.json({ url: paymentLink.checkoutUrl });
-  } catch (error) {
-    console.error("❌ Lỗi tạo link thanh toán:", error);
-    res.status(500).json({ message: "Tạo thanh toán thất bại." });
+
+    res.json({
+      url: paymentLink.checkoutUrl,
+      booking_id: newBooking._id // 👈 trả về bookingId
+    });
+
+  } catch (err) {
+    console.error('❌ Lỗi tạo thanh toán:', err);
+    res.status(500).json({ message: 'Lỗi máy chủ' });
   }
 });
 // 👉 Nhận webhook từ PayOS url:  https://57df-2001-ee0-e9f6-51d0-dc49-8afd-9b87-dc41.ngrok-free.app/receive-webhook
+
 app.post('/receive-webhook', express.json(), async (req, res) => {
-  console.log("📩 Nhận webhook từ PayOS:", req.body);
-  res.status(200).send('Webhook received');
+  const payload = req.body;
+  console.log("📩 Nhận webhook từ PayOS:", payload);
+
+  try {
+    // Bước 1: Xác minh trạng thái thanh toán
+    if (payload.status !== 'PAID') {
+      return res.status(200).json({ message: 'Không phải giao dịch thành công, bỏ qua.' });
+    }
+
+    // Bước 2: Lưu thông tin transaction vào MongoDB
+    const transaction = new Transaction({
+      amount: payload.amount,
+      payment_method: 'PayOS',
+      status: 'success',
+      payment_date: new Date(),
+      order_code: payload.orderCode,
+      transaction_id: payload.transactionId
+    });
+
+    await transaction.save();
+
+    // Bước 3 (tuỳ chọn): Gắn transaction này vào booking nếu biết booking_id
+    // Ví dụ nếu bạn đã đính kèm booking_id trong phần `description` khi tạo payment link
+    const matchedBooking = await Booking.findOneAndUpdate(
+      { order_code: payload.orderCode },
+      { transaction_id: transaction._id, status: 'confirmed' },
+      { new: true }
+    );
+
+    res.status(200).json({
+      message: 'Đã nhận và lưu giao dịch thành công',
+      booking: matchedBooking
+    });
+  } catch (error) {
+    console.error("❌ Lỗi xử lý webhook:", error);
+    res.status(500).json({ message: "Lỗi khi xử lý webhook", error: error.message });
+  }
 });
+
 
 app.listen(3000, () => {
   console.log("✅ Server running at http://localhost:3000");
