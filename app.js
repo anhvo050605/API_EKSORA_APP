@@ -58,10 +58,17 @@ app.post('/create-payment-link', express.json(), async (req, res) => {
       quantity_treEm,
       coin,
       totalPrice,
-      optionServices // [{ option_service_id }]
+      optionServices,
+      userInfo
     } = req.body;
+      if (!user_id || !tour_id || !travel_date || !totalPrice) {
+      throw new Error("Thiếu thông tin bắt buộc (user_id, tour_id, travel_date, totalPrice)");
+    }
 
-    // ✅ Tạo bản booking trước (status: pending)
+    console.log("✅ Đã nhận user_id:", user_id);
+    console.log("✅ Đã nhận totalPrice:", totalPrice);
+    console.log("✅ Dạng optionServices:", Array.isArray(optionServices), optionServices);
+
     const newBooking = new Booking({
       user_id,
       tour_id,
