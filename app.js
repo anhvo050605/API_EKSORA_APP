@@ -75,7 +75,7 @@ app.post('/receive-webhook', express.json(), async (req, res) => {
       return res.status(200).json({ message: 'Không phải thanh toán thành công, bỏ qua' });
     }
 
-    const Transaction = require('./schema/transactionSchema');
+    const Transaction = require('./schema/transactionSchema'); // Đảm bảo đã định nghĩa schema Transaction
     const Booking = require('./schema/bookingSchema');
 
     // ✅ 1. Tạo transaction mới
