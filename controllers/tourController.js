@@ -89,9 +89,25 @@ const getTourDetail = async (req, res) => {
     res.status(500).json({ message: "Lỗi máy chủ" });
   }
 };
+const deleteTour = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deleted = await Tour.findByIdAndDelete(id);
+
+    if (!deleted) {
+      return res.status(404).json({ message: 'Không tìm thấy tour để xóa' });
+    }
+
+    res.status(200).json({ message: 'Xóa tour thành công' });
+  } catch (error) {
+    console.error('Lỗi khi xóa tour:', error);
+    res.status(500).json({ message: 'Lỗi máy chủ khi xóa tour', error });
+  }
+};
 
 module.exports = {
   getAllTours,
   createTour,
-  getTourDetail
+  getTourDetail,deleteTour
 };
