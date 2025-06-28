@@ -62,7 +62,7 @@ app.post('/create-payment-link', async (req, res) => {
     res.json({ url: paymentLink.checkoutUrl });
   } catch (error) {
     console.error("❌ Lỗi tạo link thanh toán:", error);
-    res.status(500).send("Tạo thanh toán thất bại.");
+    res.status(500).json({ message: "Tạo thanh toán thất bại." });
   }
 });
 // 👉 Nhận webhook từ PayOS url:  https://57df-2001-ee0-e9f6-51d0-dc49-8afd-9b87-dc41.ngrok-free.app/receive-webhook
