@@ -67,8 +67,48 @@ app.post('/create-payment-link', async (req, res) => {
 });
 // 👉 Nhận webhook từ PayOS url:  https://57df-2001-ee0-e9f6-51d0-dc49-8afd-9b87-dc41.ngrok-free.app/receive-webhook
 app.post('/receive-webhook', express.json(), async (req, res) => {
-  console.log("📩 Nhận webhook từ PayOS:", req.body);
-  res.status(200).send('Webhook received');
+  try {
+    const payload = req.body;
+    console.log("📩 Nhận webhook từ PayOS:", payload);
+
+    if (payload.status !== 'PAID') {
+      return res.status(200).json({ message: 'Không phải thanh toán thành công, bỏ qua' });
+    }
+
+    const Transaction = require('./schema/transactionSchema');
+    const Booking = require('./schema/bookingSchema');
+
+    // ✅ 1. Tạo transaction mới
+    const transaction = new Transaction({
+      amount: payload.amount,
+      transaction_id: payload.transactionId,
+      payment_method: 'PayOS',
+      status: 'success',
+      order_code: payload.orderCode
+    });
+    await transaction.save();
+
+    // ✅ 2. Gắn transaction vào booking tương ứng
+    const updatedBooking = await Booking.findByIdAndUpdate(
+      payload.orderCode, // booking._id đã lưu trong orderCode
+      {
+        transaction_id: transaction._id,
+        status: 'confirmed'
+      },
+      { new: true }
+    );
+
+    console.log("✅ Đã cập nhật booking:", updatedBooking);
+
+    return res.status(200).json({
+      message: "Đã xử lý webhook thành công",
+      booking: updatedBooking
+    });
+
+  } catch (error) {
+    console.error("❌ Lỗi xử lý webhook:", error);
+    res.status(500).json({ message: "Lỗi xử lý webhook", error: error.message });
+  }
 });
 
 app.listen(3000, () => {
