@@ -9,6 +9,6 @@ router.get('/profile', verifyToken, userController.getProfile);
 // Cập nhật thông tin user
 router.put('/profile', verifyToken, userController.updateProfile);
 
-router.get('/all', verifyToken, userController.getAllUsers);
+router.get('/all', userController.getAllUsers);
 
 module.exports = router;
