@@ -134,3 +134,17 @@ exports.deleteBooking = async (req, res) => {
     res.status(500).json({ message: 'Lỗi khi xoá booking' });
   }
 };
+
+exports.getAllBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find()
+      .populate('tour_id')
+      .populate('user_id')
+      .sort({ createdAt: -1 }); // Sắp xếp mới nhất lên đầu (tùy chọn)
+
+    res.status(200).json(bookings);
+  } catch (error) {
+    console.error('❌ Lỗi khi lấy tất cả booking:', error);
+    res.status(500).json({ message: 'Lỗi máy chủ khi lấy danh sách booking', error: error.message });
+  }
+};
