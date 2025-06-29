@@ -23,7 +23,8 @@ exports.createVoucher = async (req, res) => {
 exports.getAllVouchers = async (req, res) => {
   try {
     // 👉 Lấy tất cả, không lọc theo tour_id
-    const vouchers = await Voucher.find().populate('tour_id');
+    // 
+    const vouchers = await Voucher.find().populate('tour_id');   
     res.status(200).json(vouchers);
   } catch (err) {
     console.error('❌ Lỗi khi lấy danh sách voucher:', err);

@@ -26,6 +26,9 @@ const serviceRoutes = require('./routes/serviceRoutes');
 const bookingOptionServiceRoutes = require('./routes/bookingOptionServiceRoutes');
 const tourServiceRoutes = require('./routes/tourServiceRoutes');
 const forgotPasswordRoute = require('./routes/forgotPasswordRoute');
+const userVoucherRoutes = require('./routes/userVoucherRoutes');
+
+
 const payos = new PayOS(
   'af5b66e1-254c-4934-b883-937882df00f4',
   '8d75fba6-789f-4ea4-8a3f-af375140662d',
@@ -131,6 +134,8 @@ app.use('/api/booking-options', bookingOptionServiceRoutes);
 app.use('/api/tour-services', tourServiceRoutes);
 
 app.use('/api/password', forgotPasswordRoute);
+
+app.use('/api/user-vouchers', userVoucherRoutes);
 
 
 
