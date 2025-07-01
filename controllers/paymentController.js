@@ -40,7 +40,10 @@ exports.createPaymentLink = async (req, res) => {
     const expiredAt = Math.floor(Date.now() / 1000) + 15 * 60;
 
     // ✅ Giới hạn mô tả chỉ tối đa 25 ký tự
-    const safeDescription = description?.substring(0, 25) || 'Thanh toán đơn hàng';
+    const safeDescription =
+      typeof description === 'string'
+        ? description.substring(0, 25)
+        : 'Thanh toán đơn hàng';
 
     const paymentLinkRes = await payos.createPaymentLink({
       orderCode,
