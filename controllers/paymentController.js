@@ -47,17 +47,16 @@ exports.createPaymentLink = async (req, res) => {
 
     const paymentLinkRes = await payos.createPaymentLink({
       orderCode,
-      amount,
+      amount: Number(amount),
       description: safeDescription,
       returnUrl: 'http://160.250.246.76:3000/return',
       cancelUrl: 'http://160.250.246.76:3000/cancel',
-      buyerName,
-      buyerEmail,
-      buyerPhone,
-      buyerAddress,
+      buyerName: buyerName || 'Không rõ',
+      buyerEmail: buyerEmail || 'unknown@example.com',
+      buyerPhone: buyerPhone || '0000000000',
+      buyerAddress: buyerAddress || 'Không rõ',
       expiredAt
     });
-
     res.status(200).json({
       url: paymentLinkRes.checkoutUrl,
       orderCode,            // ✅ Trả lại orderCode để mapping webhook sau
