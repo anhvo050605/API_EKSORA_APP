@@ -6,7 +6,7 @@ var logger = require('morgan');
 require('dotenv').config();
 console.log(">> ĐANG KIỂM TRA KEY - Checksum Key được nạp:", process.env.PAYOS_CHECKSUM_KEY);
 const cors = require('cors'); 
-const PayOS = require('@payos/node');
+// const PayOS = require('@payos/node');
 const mongoose = require('mongoose');
 require("./schema/userSchema");
 
@@ -27,22 +27,22 @@ const bookingOptionServiceRoutes = require('./routes/bookingOptionServiceRoutes'
 const tourServiceRoutes = require('./routes/tourServiceRoutes');
 const forgotPasswordRoute = require('./routes/forgotPasswordRoute');
 const userVoucherRoutes = require('./routes/userVoucherRoutes');
+const webhookRoutes = require('./routes/webhookRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
+// const payos = new PayOS(
+//   'af5b66e1-254c-4934-b883-937882df00f4',
+//   '8d75fba6-789f-4ea4-8a3f-af375140662d',
+//   '679844fa14db0d74a766e61d83a2bb3d712ae2fc8a4f4ef9d9e269c0a7eced22'
+// );
 
-
-const payos = new PayOS(
-  'af5b66e1-254c-4934-b883-937882df00f4',
-  '8d75fba6-789f-4ea4-8a3f-af375140662d',
-  '679844fa14db0d74a766e61d83a2bb3d712ae2fc8a4f4ef9d9e269c0a7eced22'
-);
-
-const YOUR_DOMAIN = 'http://160.250.246.76:3000'
+// const YOUR_DOMAIN = 'http://160.250.246.76:3000'
 
 
 
 
 //============================================================================================================
 var app = express();
-
+app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
@@ -50,29 +50,31 @@ app.get('/', (req, res) => {
 });
 
 // 👉 Tạo link thanh toán
-app.post('/create-payment-link', async (req, res) => {
-  const order = {
-    amount: 5000, // VND
-    description: 'Thanh toán sản phẩm ABC',
-    orderCode: Date.now(), // mã đơn duy nhất
-    returnUrl: `${YOUR_DOMAIN}/success.html`,
-    cancelUrl: `${YOUR_DOMAIN}/cancel.html`
-  };
+// app.post('/create-payment-link', async (req, res) => {
+//   const order = {
+//     amount: 5000, // VND
+//     description: 'Thanh toán sản phẩm ABC',
+//     orderCode: Date.now(), // mã đơn duy nhất
+//     returnUrl: `${YOUR_DOMAIN}/success.html`,
+//     cancelUrl: `${YOUR_DOMAIN}/cancel.html`
+//   };
 
-  try {
-    const paymentLink = await payos.createPaymentLink(order);
-    // res.redirect(303, paymentLink.checkoutUrl);
-    res.json({ url: paymentLink.checkoutUrl });
-  } catch (error) {
-    console.error("❌ Lỗi tạo link thanh toán:", error);
-    res.status(500).json({ message: "Tạo thanh toán thất bại." });
-  }
-});
+//   try {
+//     const paymentLink = await payos.createPaymentLink(order);
+//     // res.redirect(303, paymentLink.checkoutUrl);
+//     res.json({ url: paymentLink.checkoutUrl });
+//   } catch (error) {
+//     console.error("❌ Lỗi tạo link thanh toán:", error);
+//     res.status(500).json({ message: "Tạo thanh toán thất bại." });
+//   }
+// });
 // 👉 Nhận webhook từ PayOS url:  https://57df-2001-ee0-e9f6-51d0-dc49-8afd-9b87-dc41.ngrok-free.app/receive-webhook
-app.post('/receive-webhook', express.json(), async (req, res) => {
-  console.log("📩 Nhận webhook từ PayOS:", req.body);
-  res.status(200).send('Webhook received');
-});
+// app.post('/receive-webhook', express.json(), async (req, res) => {
+//   console.log("📩 Nhận webhook từ PayOS:", req.body);
+//   res.status(200).send('Webhook received');
+// });
+
+
 
 app.listen(3000, () => {
   console.log("✅ Server running at http://localhost:3000");
@@ -90,7 +92,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
 
 app.use(logger('dev'));
-app.use(express.json());
+
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -137,7 +139,9 @@ app.use('/api/password', forgotPasswordRoute);
 
 app.use('/api/user-vouchers', userVoucherRoutes);
 
+app.use('/api', webhookRoutes);
 
+app.use('/api', paymentRoutes);
 
 //===================================================================================================
 

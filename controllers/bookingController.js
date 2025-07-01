@@ -69,7 +69,11 @@ exports.createBooking = async (req, res) => {
       await BookingOptionService.insertMany(bookingOptions);
     }
 
-    res.status(201).json({ message: 'Đặt tour thành công', booking: newBooking });
+    res.status(201).json({
+      message: 'Đặt tour thành công',
+      booking_id: newBooking._id, // 👈 booking id trả ra
+      booking: newBooking
+    });
   } catch (error) {
     console.error('❌ Lỗi khi đặt tour:', error);
     res.status(500).json({ message: 'Lỗi máy chủ khi đặt tour', error: error.message });
