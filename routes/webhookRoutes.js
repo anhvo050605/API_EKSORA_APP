@@ -5,6 +5,7 @@ const Booking = require('../schema/bookingSchema');
 
 router.post('/receive-webhook', async (req, res) => {
   try {
+    console.log("✅ ĐÃ NHẬN WEBHOOK:", req.body);
     const payload = req.body;
 
     console.log("📩 Webhook nhận từ PayOS:", payload);
