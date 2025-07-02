@@ -12,11 +12,10 @@ router.post('/receive-webhook', express.json(), async (req, res) => {
     const status = payload?.status;
     const amount = payload?.amount;
 
-    // ✅ Nếu không có orderCode thì phản hồi luôn để tránh crash
-    if (!orderCode) {
-      console.warn("⚠️ Không có orderCode trong payload:", payload);
-      return res.status(200).send("Đã nhận test webhook (không có orderCode)");
-    }
+    // if (!orderCode) {
+    //   console.warn("⚠️ Không có orderCode trong payload:", payload);
+    //   return res.status(200).send("Đã nhận test webhook (không có orderCode)");
+    // }
 
     const booking = await Booking.findOne({ order_code: orderCode });
 
