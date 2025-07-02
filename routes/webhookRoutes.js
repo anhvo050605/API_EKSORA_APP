@@ -10,9 +10,9 @@ router.post('/receive-webhook', express.json(), async (req, res) => {
     console.log("✅ ĐÃ NHẬN WEBHOOK:", req.body);
     const payload = req.body;
 
-    const orderCode = payload?.orderCode;
-    const status = payload?.status;
-    const amount = payload?.amount;
+    const orderCode = payload?.data?.orderCode;
+    const status = payload?.data?.code === '00' ? 'PAID' : 'FAILED';
+    const amount = payload?.data?.amount;
 
     // if (!orderCode) {
     //   console.warn("⚠️ Không có orderCode trong payload:", payload);
