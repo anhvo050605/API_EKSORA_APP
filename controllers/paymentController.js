@@ -56,11 +56,9 @@ exports.createPaymentLink = async (req, res) => {
       buyerAddress: buyerAddress || 'Không rõ',
       expiredAt
     });
-    console.log("🔍 Amount từ client:", amount); // client gửi gì thì log ra
-    const fixedAmount = 5000;
     const paymentLinkRes = await payos.createPaymentLink({
       orderCode,
-      amount: fixedAmount,
+      amount: Number(amount),
       description: safeDescription,
       returnUrl: 'http://160.250.246.76:3000/return',
       cancelUrl: 'http://160.250.246.76:3000/cancel',
