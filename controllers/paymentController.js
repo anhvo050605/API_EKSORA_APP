@@ -58,7 +58,7 @@ exports.createPaymentLink = async (req, res) => {
     });
     const paymentLinkRes = await payos.createPaymentLink({
       orderCode,
-      amount: Number(amount),
+      amount: 5000,
       description: safeDescription,
       returnUrl: 'http://160.250.246.76:3000/return',
       cancelUrl: 'http://160.250.246.76:3000/cancel',
