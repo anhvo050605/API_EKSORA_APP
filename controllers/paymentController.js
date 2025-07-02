@@ -31,7 +31,9 @@ exports.createPaymentLink = async (req, res) => {
       new mongoose.Types.ObjectId(booking_id).toHexString().slice(-12),
       16
     ); // ✅ PayOS yêu cầu orderCode là số nhỏ hơn 9007199254740991
-    const booking = await Booking.findById(booking_id);
+    console.log("🔍 Đang tìm booking với orderCode:", orderCode);
+    const booking = await Booking.findOne({ order_code: orderCode });
+    console.log("👉 Kết quả tìm booking:", booking);
     if (!booking) {
       return res.status(404).json({ message: 'Booking không tồn tại' });
     }
