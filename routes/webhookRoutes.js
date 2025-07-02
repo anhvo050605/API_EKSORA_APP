@@ -3,7 +3,7 @@ const router = express.Router();
 const Transaction = require('../schema/transactionSchema');
 const Booking = require('../schema/bookingSchema');
 
-router.post('/receive-webhook', express.json(), async (req, res) => {
+router.post('/receive-webhook',  bodyParser.json(),bodyParser.urlencoded({ extended: true }), async (req, res) => {
   try {
     console.log("✅ ĐÃ NHẬN WEBHOOK:", req.body);
     const payload = req.body;
