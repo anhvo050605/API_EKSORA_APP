@@ -26,11 +26,11 @@ const getAllTours = async (req, res) => {
 // Tạo tour mới
 const createTour = async (req, res) => {
   try {
-    const { name, description, price, image, cateID, supplier_id, province, duration, location, rating } = req.body;
+    const { name, description, price, image, cateID, supplier_id, province, duration, location, rating, operating_time } = req.body;
 
     const newTour = new Tour({
-      name, description, price, image, cateID, supplier_id, province, duration, location, rating
-    });
+      name, description, price, image, cateID, supplier_id, province, duration, location, rating, operating_time
+    });;
 
     await newTour.save();
 
@@ -97,7 +97,7 @@ const getTourDetail = async (req, res) => {
       tour,
       services: servicesWithOptions,
       highlights,
-      reviews,vouchers
+      reviews, vouchers
     });
 
   } catch (error) {
@@ -155,5 +155,5 @@ const updateTour = async (req, res) => {
 module.exports = {
   getAllTours,
   createTour,
-  getTourDetail, deleteTour,updateTour
+  getTourDetail, deleteTour, updateTour
 };

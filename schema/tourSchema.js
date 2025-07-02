@@ -11,6 +11,7 @@ const tourSchema = new mongoose.Schema({
   cateID: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
   supplier_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Supplier' },
   province: { type: String, required: true },
+  operating_time: { type: String }, 
   created_at: { type: Date, default: Date.now }
 });
 
