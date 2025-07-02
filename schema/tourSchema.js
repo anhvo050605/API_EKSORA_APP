@@ -11,7 +11,8 @@ const tourSchema = new mongoose.Schema({
   cateID: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
   supplier_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Supplier' },
   province: { type: String, required: true },
-  operating_time: { type: String }, 
+   opening_time: { type: String }, // giờ mở cửa
+  closing_time: { type: String }, // giờ đóng cửa
   created_at: { type: Date, default: Date.now }
 });
 

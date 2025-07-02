@@ -26,11 +26,11 @@ const getAllTours = async (req, res) => {
 // Tạo tour mới
 const createTour = async (req, res) => {
   try {
-    const { name, description, price, image, cateID, supplier_id, province, duration, location, rating, operating_time } = req.body;
+    const { name, description, price, image, cateID, supplier_id, province, duration, location, rating, opening_time, closing_time } = req.body;
 
     const newTour = new Tour({
-      name, description, price, image, cateID, supplier_id, province, duration, location, rating, operating_time
-    });;
+      name, description, price, image, cateID, supplier_id, province, duration, location, rating, opening_time, closing_time
+    });
 
     await newTour.save();
 
