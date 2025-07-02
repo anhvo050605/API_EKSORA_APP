@@ -5,6 +5,8 @@ const Booking = require('../schema/bookingSchema');
 
 router.post('/receive-webhook', express.json(), async (req, res) => {
   try {
+    console.log('🔍 Headers:', req.headers);
+    console.log('📦 Raw Body:', req.body);
     console.log("✅ ĐÃ NHẬN WEBHOOK:", req.body);
     const payload = req.body;
 
