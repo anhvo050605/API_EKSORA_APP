@@ -79,9 +79,7 @@ app.get('/', (req, res) => {
 
 
 
-app.listen(3000, '0.0.0.0', () => {
-  console.log('Server running on all interfaces');
-});
+
 
 app.use(cors({
   origin: '*', // hoặc thay bằng 'https://your-frontend-domain.com' nếu muốn bảo mật hơn
@@ -145,7 +143,9 @@ app.use('/api/user-vouchers', userVoucherRoutes);
 app.use('/api', webhookRoutes);
 
 app.use('/api', paymentRoutes);
-
+app.listen(3000, '0.0.0.0', () => {
+  console.log('Server running on all interfaces');
+});
 //===================================================================================================
 
 
