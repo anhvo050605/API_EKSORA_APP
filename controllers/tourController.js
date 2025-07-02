@@ -121,9 +121,39 @@ const deleteTour = async (req, res) => {
     res.status(500).json({ message: 'Lỗi máy chủ khi xóa tour', error });
   }
 };
+// Cập nhật tour
+const updateTour = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "ID không hợp lệ" });
+    }
+
+    const updateData = req.body;
+
+    const updatedTour = await Tour.findByIdAndUpdate(id, updateData, {
+      new: true, // Trả về document sau khi cập nhật
+      runValidators: true, // Kiểm tra schema validation
+    });
+
+    if (!updatedTour) {
+      return res.status(404).json({ message: "Không tìm thấy tour để cập nhật" });
+    }
+
+    res.status(200).json({
+      message: "Cập nhật tour thành công",
+      tour: updatedTour,
+    });
+  } catch (error) {
+    console.error("Lỗi khi cập nhật tour:", error);
+    res.status(500).json({ message: "Lỗi máy chủ khi cập nhật tour", error });
+  }
+};
+
 
 module.exports = {
   getAllTours,
   createTour,
-  getTourDetail, deleteTour
+  getTourDetail, deleteTour,updateTour
 };
