@@ -44,7 +44,18 @@ exports.createPaymentLink = async (req, res) => {
       typeof description === 'string'
         ? description.substring(0, 25)
         : 'Thanh toán đơn hàng';
-
+    console.log("Gửi PayOS với dữ liệu:", {
+      orderCode,
+      amount: Number(amount),
+      description: safeDescription,
+      returnUrl: 'http://160.250.246.76:3000/return',
+      cancelUrl: 'http://160.250.246.76:3000/cancel',
+      buyerName: buyerName || 'Không rõ',
+      buyerEmail: buyerEmail || 'unknown@example.com',
+      buyerPhone: buyerPhone || '0000000000',
+      buyerAddress: buyerAddress || 'Không rõ',
+      expiredAt
+    });
     const paymentLinkRes = await payos.createPaymentLink({
       orderCode,
       amount: Number(amount),
