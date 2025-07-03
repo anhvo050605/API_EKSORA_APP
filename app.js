@@ -33,6 +33,8 @@ const userVoucherRoutes = require('./routes/userVoucherRoutes');
 const webhookRoutes = require('./routes/webhookRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const locationRoutes = require('./routes/locationRoutes');
+const suggestionRoute = require('./routes/suggestionRoute');
+const itineraryRoute = require('./routes/itineraryRoute');
 // const payos = new PayOS(
 //   'af5b66e1-254c-4934-b883-937882df00f4',
 //   '8d75fba6-789f-4ea4-8a3f-af375140662d',
@@ -144,6 +146,10 @@ app.use('/api/user-vouchers', userVoucherRoutes);
 app.use('/api', webhookRoutes);
 
 app.use('/api/location', locationRoutes);
+
+app.use('/api', suggestionRoute);
+app.use('/api', itineraryRoute);
+
 app.use('/api', paymentRoutes);
 app.listen(3000, '0.0.0.0', () => {
   console.log('Server running on all interfaces');
