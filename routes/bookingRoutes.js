@@ -6,7 +6,7 @@ router.get('/all', bookingController.getAllBookings);
 router.post('/',verifyToken,bookingController.createBooking);
 router.get('/user/:userId', verifyToken,bookingController.getBookingsByUser);
 router.get('/:id',verifyToken, bookingController.getBookingDetail);
-router.put('/:id',verifyToken, bookingController.updateBookingStatus);
+router.put('/:id', bookingController.updateBookingStatus);
 router.delete('/:id',verifyToken, bookingController.deleteBooking);
 
 

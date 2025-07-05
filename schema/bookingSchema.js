@@ -14,7 +14,21 @@ const bookingSchema = new mongoose.Schema({
   transaction_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Transaction' },
   order_code: { type: Number, default: null } ,
   // voucher_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Voucher' },
-  status: { type: String, enum: ['pending', 'confirmed', 'cancelled', 'paid', 'failed'], default: 'pending' },
+  status: {
+    type: String,
+    enum: [
+      'pending',            // Đang chờ xác nhận
+      'confirmed',          // Đã xác nhận
+      'paid',               // Đã thanh toán
+      'ongoing',            // Đang diễn ra
+      'completed',          // Đã hoàn thành
+      'canceled',           // Đã huỷ
+      'refund_requested',   // Yêu cầu hoàn tiền
+      'refunded',           // Đã hoàn tiền
+      'expired'             // Quá hạn thanh toán
+    ],
+    default: 'pending'
+  },
   created_at: { type: Date, default: Date.now }
 });
 
