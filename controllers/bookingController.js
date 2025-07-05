@@ -152,3 +152,27 @@ exports.getAllBookings = async (req, res) => {
     res.status(500).json({ message: 'Lỗi máy chủ khi lấy danh sách booking', error: error.message });
   }
 };
+exports.cancelBooking = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const booking = await Booking.findById(id);
+    if (!booking) {
+      return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
+    }
+
+    // Chỉ huỷ được nếu chưa thanh toán
+    const notCancellableStatuses = ['paid', 'completed'];
+    if (notCancellableStatuses.includes(booking.status)) {
+      return res.status(400).json({ message: 'Đơn hàng đã thanh toán hoặc hoàn thành, không thể huỷ' });
+    }
+
+    booking.status = 'canceled';
+    await booking.save();
+
+    res.status(200).json({ message: 'Đơn hàng đã được huỷ thành công', booking });
+  } catch (error) {
+    console.error('❌ Lỗi khi huỷ đơn hàng:', error);
+    res.status(500).json({ message: 'Lỗi máy chủ khi huỷ đơn hàng' });
+  }
+};

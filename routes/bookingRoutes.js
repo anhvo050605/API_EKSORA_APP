@@ -9,5 +9,6 @@ router.get('/:id',verifyToken, bookingController.getBookingDetail);
 router.put('/:id', bookingController.updateBookingStatus);
 router.delete('/:id',verifyToken, bookingController.deleteBooking);
 
+router.put('/cancel/:id',verifyToken, bookingController.cancelBooking);
 
 module.exports = router;
