@@ -29,7 +29,8 @@ const bookingSchema = new mongoose.Schema({
     ],
     default: 'pending'
   },
-  created_at: { type: Date, default: Date.now }
+  created_at: { type: Date, default: Date.now },
+  last_update: { type: Date },
 });
 
 module.exports = mongoose.model('Booking', bookingSchema);
