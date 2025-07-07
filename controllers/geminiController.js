@@ -14,8 +14,8 @@ const chatWithGemini = async (req, res) => {
 
     res.json({ reply: text });
   } catch (error) {
-    console.error('Gemini API Error:', error);
-    res.status(500).json({ error: 'Lỗi khi gọi Gemini API' });
+    console.error("Gemini API Error:", error?.response?.data || error.message || error);
+    res.status(500).json({ error: 'Lỗi khi gọi Gemini API', details: error?.response?.data || error.message });
   }
 };
 
