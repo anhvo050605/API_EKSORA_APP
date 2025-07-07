@@ -8,6 +8,7 @@ console.log(">>> PAYOS ENV CHECK:");
 console.log("CLIENT_ID:", process.env.PAYOS_CLIENT_ID);
 console.log("API_KEY:", process.env.PAYOS_API_KEY);
 console.log("CHECKSUM_KEY:", process.env.PAYOS_CHECKSUM_KEY);
+console.log("Gemini Key:", process.env.GEMINI_API_KEY);
 const cors = require('cors'); 
 // const PayOS = require('@payos/node');
 const mongoose = require('mongoose');

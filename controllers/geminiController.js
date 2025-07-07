@@ -2,7 +2,7 @@ require('dotenv').config();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
+console.log("Gemini Key:", process.env.GEMINI_API_KEY);
 const chatWithGemini = async (req, res) => {
   try {
     const { prompt } = req.body;
