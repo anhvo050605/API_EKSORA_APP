@@ -34,3 +34,22 @@ exports.getAllUsers = async (req, res) => {
     res.status(500).json({ message: 'Lỗi khi lấy danh sách người dùng', error });
   }
 };
+exports.deleteUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    // Không cho xóa chính mình
+    if (req.user.userId === userId) {
+      return res.status(400).json({ message: "Không thể tự xóa chính mình" });
+    }
+
+    const deletedUser = await User.findByIdAndDelete(userId);
+    if (!deletedUser) {
+      return res.status(404).json({ message: "Người dùng không tồn tại" });
+    }
+
+    res.status(200).json({ message: "Xóa người dùng thành công" });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi khi xóa người dùng", error });
+  }
+};
