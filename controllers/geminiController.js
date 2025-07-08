@@ -1,21 +1,30 @@
-require('dotenv').config();
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const axios = require("axios");
+require("dotenv").config();
 
 const chatWithGemini = async (req, res) => {
   try {
     const { prompt } = req.body;
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    const response = await axios.post(
+      "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent",
+      {
+        contents: [{ parts: [{ text: prompt }] }]
+      },
+      {
+        headers: {
+          "Content-Type": "application/json"
+        },
+        params: {
+          key: process.env.GEMINI_API_KEY
+        }
+      }
+    );
 
-    res.json({ reply: text });
+    const result = response.data.candidates[0].content.parts[0].text;
+    res.json({ reply: result });
   } catch (error) {
-    console.error("Gemini API Error:", error?.response?.data || error.message || error);
-    res.status(500).json({ error: 'Lỗi khi gọi Gemini API', details: error?.response?.data || error.message });
+    console.error("Lỗi gọi Gemini:", error?.response?.data || error.message);
+    res.status(500).json({ error: "Lỗi khi gọi Gemini API", details: error?.response?.data || error.message });
   }
 };
 
