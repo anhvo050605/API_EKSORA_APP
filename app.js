@@ -8,7 +8,6 @@ console.log(">>> PAYOS ENV CHECK:");
 console.log("CLIENT_ID:", process.env.PAYOS_CLIENT_ID);
 console.log("API_KEY:", process.env.PAYOS_API_KEY);
 console.log("CHECKSUM_KEY:", process.env.PAYOS_CHECKSUM_KEY);
-console.log("Gemini Key:", process.env.GEMINI_API_KEY);
 const cors = require('cors'); 
 // const PayOS = require('@payos/node');
 const mongoose = require('mongoose');
@@ -36,7 +35,7 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const locationRoutes = require('./routes/locationRoutes');
 const suggestionRoute = require('./routes/suggestionRoute');
 const itineraryRoute = require('./routes/itineraryRoute');
-const chatRoute = require('./routes/chatRoute');
+
 
 // const payos = new PayOS(
 //   'af5b66e1-254c-4934-b883-937882df00f4',
@@ -155,7 +154,7 @@ app.use('/api', itineraryRoute);
 
 app.use('/api', paymentRoutes);
 
-app.use('/api', chatRoute);
+
 app.listen(3000, '0.0.0.0', () => {
   console.log('Server running on all interfaces');
 });
