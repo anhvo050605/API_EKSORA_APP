@@ -24,3 +24,30 @@ exports.getSupplierDetail = async (req, res) => {
     res.status(500).json({ message: "Lỗi máy chủ" });
   }
 };
+
+// Tạo mới một đối tác
+exports.createSupplier = async (req, res) => {
+  try {
+    const { name, email, phone, address, description } = req.body;
+
+    // Kiểm tra trường bắt buộc
+    if (!name) {
+      return res.status(400).json({ message: "Tên đối tác là bắt buộc" });
+    }
+
+    const newSupplier = new Supplier({
+      name,
+      email,
+      phone,
+      address,
+      description
+    });
+
+    const savedSupplier = await newSupplier.save();
+    res.status(201).json(savedSupplier);
+  } catch (error) {
+    console.error("Lỗi tạo đối tác:", error);
+    res.status(500).json({ message: "Lỗi máy chủ" });
+  }
+};
+
