@@ -150,7 +150,9 @@ exports.getAllBookings = async (req, res) => {
     // Duyệt qua từng booking để lấy option service tương ứng
     const bookingsWithOptions = await Promise.all(
       bookings.map(async (booking) => {
-        const selectedOptions = await BookingOptionService.find({ booking_id: booking._id })
+        const selectedOptions = await BookingOptionService.find({
+          booking_id: new mongoose.Types.ObjectId(booking._id)
+        })
           .populate({
             path: 'option_service_id',
             populate: {
