@@ -65,6 +65,7 @@ exports.createBooking = async (req, res) => {
       const bookingOptions = selectedOptionIds.map(optId => ({
         booking_id: newBooking._id,
         option_service_id: new mongoose.Types.ObjectId(optId),
+        quantity: opt.quantity || 1 
       }));
       await BookingOptionService.insertMany(bookingOptions);
     }

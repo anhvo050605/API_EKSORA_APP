@@ -24,7 +24,8 @@ const bookingOptionServiceSchema = new mongoose.Schema({
   updated_at: {
     type: Date,
     default: Date.now
-  }
+  },
+    quantity: { type: Number, default: 1 }
 });
 
 module.exports = mongoose.model('BookingOptionService', bookingOptionServiceSchema);
