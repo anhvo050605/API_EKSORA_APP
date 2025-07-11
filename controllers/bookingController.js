@@ -14,7 +14,7 @@ exports.createBooking = async (req, res) => {
       voucher_id,
       quantity_nguoiLon = 0,
       quantity_treEm = 0,
-      optionServices = [] // ✅ Nhận đúng mảng từ frontend
+      selectedOptions = {}// ✅ Nhận đúng mảng từ frontend
     } = req.body;
 
     // const DEFAULT_ADULT_PRICE = 300000;
@@ -34,9 +34,9 @@ exports.createBooking = async (req, res) => {
     // totalPrice += quantity_treEm * DEFAULT_CHILD_PRICE;
 
     // ✅ Xử lý option service nếu có
-    const selectedOptionIds = optionServices
-      .map(opt => opt.option_service_id)
-      .filter(id => mongoose.Types.ObjectId.isValid(id));
+    const selectedOptionIds = Object.values(selectedOptions).filter(id =>
+      mongoose.Types.ObjectId.isValid(id)
+    );
 
     if (selectedOptionIds.length > 0) {
       const optionDocs = await OptionService.find({ _id: { $in: selectedOptionIds } });
@@ -48,23 +48,21 @@ exports.createBooking = async (req, res) => {
     const newBooking = new Booking({
       user_id,
       tour_id,
-      travel_date: travelDateObj,
+      travel_date: new Date(travel_date),
       coin,
       voucher_id,
       quantity_nguoiLon,
       quantity_treEm,
-      // price_nguoiLon: DEFAULT_ADULT_PRICE,
-      // price_treEm: DEFAULT_CHILD_PRICE,
       totalPrice,
     });
 
     await newBooking.save();
 
     // ✅ Lưu option service được chọn (nếu có)
-    if (optionServices.length > 0) {
-      const bookingOptions = optionServices.map(opt => ({
+    if (selectedOptionIds.length > 0) {
+      const bookingOptions = selectedOptionIds.map(optId => ({
         booking_id: newBooking._id,
-        option_service_id: new mongoose.Types.ObjectId(opt.option_service_id),
+        option_service_id: new mongoose.Types.ObjectId(optId),
         status: 'active',
         created_at: new Date(),
         updated_at: new Date()
