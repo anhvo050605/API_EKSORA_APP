@@ -25,21 +25,57 @@ const getAllTours = async (req, res) => {
 
 // Tạo tour mới
 const createTour = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
-    const { name, description, price,price_child, image, cateID, supplier_id, location, rating, opening_time, closing_time } = req.body;
+    const {
+      name, description, price, price_child,
+      image, cateID, supplier_id, location, rating,
+      opening_time, closing_time,
+      services = [] // 👈 service + options từ admin
+    } = req.body;
 
+    // 1. Tạo tour
     const newTour = new Tour({
-      name, description, price,price_child, image, cateID, supplier_id, location, rating, opening_time, closing_time
+      name, description, price, price_child, image,
+      cateID, supplier_id, location, rating,
+      opening_time, closing_time
     });
 
-    await newTour.save();
+    await newTour.save({ session });
 
-    res.status(201).json({ message: 'Tạo tour thành công', tour: newTour });
+    // 2. Duyệt từng service
+    for (const svc of services) {
+      const newService = await new Service({
+        name: svc.name,
+        type: svc.type, // 'single' | 'multiple'
+        tour_id: newTour._id
+      }).save({ session });
+
+      // 3. Duyệt từng optionService thuộc service
+      const optionList = svc.options || [];
+      const optionDocs = optionList.map(opt => ({
+        name: opt.name,
+        price_extra: opt.price_extra || 0,
+        service_id: newService._id
+      }));
+      if (optionDocs.length > 0) {
+        await OptionService.insertMany(optionDocs, { session });
+      }
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(201).json({ message: 'Tạo tour kèm dịch vụ thành công', tour: newTour });
   } catch (error) {
-    console.error('Lỗi tạo tour:', error);
+    await session.abortTransaction();
+    session.endSession();
+    console.error('❌ Lỗi tạo tour kèm dịch vụ:', error);
     res.status(500).json({ message: 'Lỗi máy chủ', error });
   }
 };
+
 
 // Lấy chi tiết tour
 const getTourDetail = async (req, res) => {
