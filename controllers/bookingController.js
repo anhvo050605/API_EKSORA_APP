@@ -65,7 +65,6 @@ exports.createBooking = async (req, res) => {
       const bookingOptions = selectedOptionIds.map(optId => ({
         booking_id: newBooking._id,
         option_service_id: new mongoose.Types.ObjectId(optId),
-        quantity: opt.quantity || 1 
       }));
       await BookingOptionService.insertMany(bookingOptions);
     }
@@ -142,40 +141,17 @@ exports.deleteBooking = async (req, res) => {
 
 exports.getAllBookings = async (req, res) => {
   try {
-    // Lấy danh sách booking
     const bookings = await Booking.find()
       .populate('tour_id')
       .populate('user_id')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 }); // Sắp xếp mới nhất lên đầu (tùy chọn)
 
-    // Duyệt qua từng booking để lấy option service tương ứng
-    const bookingsWithOptions = await Promise.all(
-      bookings.map(async (booking) => {
-        const selectedOptions = await BookingOptionService.find({
-          booking_id: new mongoose.Types.ObjectId(booking._id)
-        })
-          .populate({
-            path: 'option_service_id',
-            populate: {
-              path: 'service_id',
-              model: 'Service'
-            }
-          });
-
-        return {
-          ...booking.toObject(),
-          selected_options: selectedOptions,
-        };
-      })
-    );
-
-    res.status(200).json(bookingsWithOptions);
+    res.status(200).json(bookings);
   } catch (error) {
     console.error('❌ Lỗi khi lấy tất cả booking:', error);
     res.status(500).json({ message: 'Lỗi máy chủ khi lấy danh sách booking', error: error.message });
   }
 };
-
 exports.cancelBooking = async (req, res) => {
   try {
     const { id } = req.params;
