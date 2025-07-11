@@ -55,8 +55,9 @@ const createTour = async (req, res) => {
       // 3. Duyệt từng optionService thuộc service
       const optionList = svc.options || [];
       const optionDocs = optionList.map(opt => ({
-        name: opt.name,
+        title: opt.title, // ✅ đúng field trong schema
         price_extra: opt.price_extra || 0,
+        description: opt.description || '',
         service_id: newService._id
       }));
       if (optionDocs.length > 0) {
