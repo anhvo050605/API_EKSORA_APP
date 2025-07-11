@@ -29,7 +29,7 @@ exports.createBooking = async (req, res) => {
     const travelDateObj = new Date(`${year}-${month}-${day}`);
 
     // ✅ Tính tổng tiền
-    // let totalPrice = tour.price; // Bắt đầu với giá tour gốc
+    let totalPrice = tour.price; // Bắt đầu với giá tour gốc
     // totalPrice += quantity_nguoiLon * DEFAULT_ADULT_PRICE;
     // totalPrice += quantity_treEm * DEFAULT_CHILD_PRICE;
 
