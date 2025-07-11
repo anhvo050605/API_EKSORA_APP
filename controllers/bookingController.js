@@ -62,10 +62,14 @@ exports.createBooking = async (req, res) => {
 
     // ✅ Lưu option service được chọn (nếu có)
     if (selectedOptionIds.length > 0) {
-      const bookingOptions = selectedOptionIds.map(optId => ({
+      const bookingOptions = optionServices.map(opt => ({
         booking_id: newBooking._id,
-        option_service_id: new mongoose.Types.ObjectId(optId),
+        option_service_id: new mongoose.Types.ObjectId(opt.option_service_id),
+        status: 'active', // 👈 đảm bảo có status nếu schema cần
+        created_at: new Date(),
+        updated_at: new Date()
       }));
+
       await BookingOptionService.insertMany(bookingOptions);
     }
 
