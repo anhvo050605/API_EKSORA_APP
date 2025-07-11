@@ -11,14 +11,14 @@ exports.createBooking = async (req, res) => {
       tour_id,
       travel_date,
       coin,
-      // voucher_id,
+      voucher_id,
       quantity_nguoiLon = 0,
       quantity_treEm = 0,
       optionServices = [] // ✅ Nhận đúng mảng từ frontend
     } = req.body;
 
-    const DEFAULT_ADULT_PRICE = 300000;
-    const DEFAULT_CHILD_PRICE = 150000;
+    // const DEFAULT_ADULT_PRICE = 300000;
+    // const DEFAULT_CHILD_PRICE = 150000;
 
     // ✅ Lấy thông tin tour để lấy giá gốc
     const tour = await Tour.findById(tour_id);
@@ -29,9 +29,9 @@ exports.createBooking = async (req, res) => {
     const travelDateObj = new Date(`${year}-${month}-${day}`);
 
     // ✅ Tính tổng tiền
-    let totalPrice = tour.price; // Bắt đầu với giá tour gốc
-    totalPrice += quantity_nguoiLon * DEFAULT_ADULT_PRICE;
-    totalPrice += quantity_treEm * DEFAULT_CHILD_PRICE;
+    // let totalPrice = tour.price; // Bắt đầu với giá tour gốc
+    // totalPrice += quantity_nguoiLon * DEFAULT_ADULT_PRICE;
+    // totalPrice += quantity_treEm * DEFAULT_CHILD_PRICE;
 
     // ✅ Xử lý option service nếu có
     const selectedOptionIds = optionServices
@@ -50,11 +50,11 @@ exports.createBooking = async (req, res) => {
       tour_id,
       travel_date: travelDateObj,
       coin,
-      // voucher_id,
+      voucher_id,
       quantity_nguoiLon,
       quantity_treEm,
-      price_nguoiLon: DEFAULT_ADULT_PRICE,
-      price_treEm: DEFAULT_CHILD_PRICE,
+      // price_nguoiLon: DEFAULT_ADULT_PRICE,
+      // price_treEm: DEFAULT_CHILD_PRICE,
       totalPrice,
     });
 
