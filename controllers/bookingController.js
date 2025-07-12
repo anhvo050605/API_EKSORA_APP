@@ -32,14 +32,14 @@ exports.createBooking = async (req, res) => {
 
     // ✅ Tính tổng tiền
     let totalPrice = (quantity_nguoiLon * price_nguoiLon) + (quantity_treEm * price_treEm);
- // Bắt đầu với giá tour gốc
+    // Bắt đầu với giá tour gốc
     // totalPrice += quantity_nguoiLon * DEFAULT_ADULT_PRICE;
     // totalPrice += quantity_treEm * DEFAULT_CHILD_PRICE;
 
     // ✅ Xử lý option service nếu có
-    const selectedOptionIds = Object.values(selectedOptions).filter(id =>
-      mongoose.Types.ObjectId.isValid(id)
-    );
+    const selectedOptionIds = optionServices
+      .map(opt => opt.option_service_id)
+      .filter(id => mongoose.Types.ObjectId.isValid(id));
 
     if (selectedOptionIds.length > 0) {
       const optionDocs = await OptionService.find({ _id: { $in: selectedOptionIds } });
@@ -48,7 +48,7 @@ exports.createBooking = async (req, res) => {
     }
 
     // ✅ Tạo bản booking
-      const newBooking = new Booking({
+    const newBooking = new Booking({
       user_id,
       tour_id,
       travel_date: travelDateObj,
