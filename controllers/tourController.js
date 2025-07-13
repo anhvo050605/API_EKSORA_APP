@@ -176,7 +176,7 @@ const updateTour = async (req, res) => {
       services = []
     } = req.body;
 
-    // 1. Cập nhật Tour chính
+    // 1. Cập nhật tour
     const updatedTour = await Tour.findByIdAndUpdate(id, {
       name, description, price, price_child,
       image, cateID, supplier_id, location, rating,
@@ -189,14 +189,14 @@ const updateTour = async (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy tour để cập nhật" });
     }
 
-    // 2. Xóa các Service & OptionService cũ
+    // 2. Xoá services cũ và option services cũ
     const oldServices = await Service.find({ tour_id: id }).session(session);
     const oldServiceIds = oldServices.map(s => s._id);
 
     await OptionService.deleteMany({ service_id: { $in: oldServiceIds } }).session(session);
     await Service.deleteMany({ tour_id: id }).session(session);
 
-    // 3. Tạo lại Service & OptionService từ danh sách mới
+    // 3. Tạo lại service mới và option mới
     for (const svc of services) {
       const newService = await new Service({
         name: svc.name,
@@ -216,20 +216,23 @@ const updateTour = async (req, res) => {
         await OptionService.insertMany(optionDocs, { session });
       }
     }
-    const servicess = await Service.find({ tour_id: updatedTour._id });
+
+    // ⚠️ Di chuyển đoạn lấy lại service sau khi dữ liệu đã được ghi chắc chắn
+    const services = await Service.find({ tour_id: updatedTour._id }).session(session);
     const servicesWithOptions = await Promise.all(
-      servicess.map(async (service) => {
-        const options = await OptionService.find({ service_id: service._id });
+      services.map(async (service) => {
+        const options = await OptionService.find({ service_id: service._id }).session(session);
         return {
           ...service.toObject(),
           options
         };
       })
     );
+
     await session.commitTransaction();
     session.endSession();
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Cập nhật tour và dịch vụ thành công",
       tour: updatedTour,
       services: servicesWithOptions
@@ -238,9 +241,10 @@ const updateTour = async (req, res) => {
     await session.abortTransaction();
     session.endSession();
     console.error("❌ Lỗi khi cập nhật tour:", error);
-    res.status(500).json({ message: "Lỗi máy chủ khi cập nhật tour", error });
+    return res.status(500).json({ message: "Lỗi máy chủ khi cập nhật tour", error });
   }
 };
+
 
 
 
