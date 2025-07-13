@@ -18,7 +18,6 @@ const bookingSchema = new mongoose.Schema({
     type: String,
     enum: [
       'pending',            // Đang chờ xác nhận
-      'confirmed',          // Đã xác nhận
       'paid',               // Đã thanh toán
       'ongoing',            // Đang diễn ra
       'completed',          // Đã hoàn thành
