@@ -218,9 +218,9 @@ const updateTour = async (req, res) => {
     }
 
     // ⚠️ Di chuyển đoạn lấy lại service sau khi dữ liệu đã được ghi chắc chắn
-    const services = await Service.find({ tour_id: updatedTour._id }).session(session);
+    const servicess = await Service.find({ tour_id: updatedTour._id }).session(session);
     const servicesWithOptions = await Promise.all(
-      services.map(async (service) => {
+      servicess.map(async (service) => {
         const options = await OptionService.find({ service_id: service._id }).session(session);
         return {
           ...service.toObject(),
