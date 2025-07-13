@@ -22,8 +22,8 @@ const bookingSchema = new mongoose.Schema({
       'ongoing',            // Đang diễn ra
       'completed',          // Đã hoàn thành
       'canceled',           // Đã huỷ
-      'refund_requested',   // Yêu cầu hoàn tiền
-      'refunded',           // Đã hoàn tiền
+      // 'refund_requested',   // Yêu cầu hoàn tiền
+      // 'refunded',           // Đã hoàn tiền
       'expired'             // Quá hạn thanh toán
     ],
     default: 'pending'
