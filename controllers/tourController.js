@@ -216,8 +216,9 @@ const updateTour = async (req, res) => {
         await OptionService.insertMany(optionDocs, { session });
       }
     }
+    const servicess = await Service.find({ tour_id: updatedTour._id });
     const servicesWithOptions = await Promise.all(
-      await Service.find({ tour_id: updatedTour._id }).map(async (service) => {
+      servicess.map(async (service) => {
         const options = await OptionService.find({ service_id: service._id });
         return {
           ...service.toObject(),
