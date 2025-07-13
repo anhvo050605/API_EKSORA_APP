@@ -216,13 +216,22 @@ const updateTour = async (req, res) => {
         await OptionService.insertMany(optionDocs, { session });
       }
     }
-
+    const servicesWithOptions = await Promise.all(
+      await Service.find({ tour_id: updatedTour._id }).map(async (service) => {
+        const options = await OptionService.find({ service_id: service._id });
+        return {
+          ...service.toObject(),
+          options
+        };
+      })
+    );
     await session.commitTransaction();
     session.endSession();
 
     res.status(200).json({
       message: "Cập nhật tour và dịch vụ thành công",
       tour: updatedTour,
+      services: servicesWithOptions
     });
   } catch (error) {
     await session.abortTransaction();
