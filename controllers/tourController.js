@@ -160,6 +160,8 @@ const deleteTour = async (req, res) => {
 };
 // Cập nhật tour
 const updateTour = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const { id } = req.params;
 
@@ -167,26 +169,69 @@ const updateTour = async (req, res) => {
       return res.status(400).json({ message: "ID không hợp lệ" });
     }
 
-    const updateData = req.body;
+    const {
+      name, description, price, price_child,
+      image, cateID, supplier_id, location, rating,
+      opening_time, closing_time,
+      services = []
+    } = req.body;
 
-    const updatedTour = await Tour.findByIdAndUpdate(id, updateData, {
-      new: true, // Trả về document sau khi cập nhật
-      runValidators: true, // Kiểm tra schema validation
-    });
+    // 1. Cập nhật Tour chính
+    const updatedTour = await Tour.findByIdAndUpdate(id, {
+      name, description, price, price_child,
+      image, cateID, supplier_id, location, rating,
+      opening_time, closing_time
+    }, { new: true, session });
 
     if (!updatedTour) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(404).json({ message: "Không tìm thấy tour để cập nhật" });
     }
 
+    // 2. Xóa các Service & OptionService cũ
+    const oldServices = await Service.find({ tour_id: id }).session(session);
+    const oldServiceIds = oldServices.map(s => s._id);
+
+    await OptionService.deleteMany({ service_id: { $in: oldServiceIds } }).session(session);
+    await Service.deleteMany({ tour_id: id }).session(session);
+
+    // 3. Tạo lại Service & OptionService từ danh sách mới
+    for (const svc of services) {
+      const newService = await new Service({
+        name: svc.name,
+        type: svc.type,
+        tour_id: updatedTour._id
+      }).save({ session });
+
+      const optionList = svc.options || [];
+      const optionDocs = optionList.map(opt => ({
+        title: opt.title,
+        price_extra: opt.price_extra || 0,
+        description: opt.description || '',
+        service_id: newService._id
+      }));
+
+      if (optionDocs.length > 0) {
+        await OptionService.insertMany(optionDocs, { session });
+      }
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+
     res.status(200).json({
-      message: "Cập nhật tour thành công",
+      message: "Cập nhật tour và dịch vụ thành công",
       tour: updatedTour,
     });
   } catch (error) {
-    console.error("Lỗi khi cập nhật tour:", error);
+    await session.abortTransaction();
+    session.endSession();
+    console.error("❌ Lỗi khi cập nhật tour:", error);
     res.status(500).json({ message: "Lỗi máy chủ khi cập nhật tour", error });
   }
 };
+
 
 
 module.exports = {
