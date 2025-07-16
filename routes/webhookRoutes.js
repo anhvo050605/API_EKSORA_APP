@@ -15,7 +15,7 @@ router.post('/receive-webhook', express.json(), async (req, res) => {
     const orderCode = payload?.data?.orderCode;
 
     const amount = payload?.data?.amount;
-    const statusFromPayOS = payload?.data?.status; // "PAID", "CANCELLED", v.v.
+    const statusFromPayOS = payload?.data?.status?.toUpperCase();
     let payment_status = 'failed';
 
     if (statusFromPayOS === 'PAID') {
@@ -49,7 +49,7 @@ router.post('/receive-webhook', express.json(), async (req, res) => {
     booking.status = payment_status;
     await booking.save();
     const tour = await Tour.findById(booking.tour_id);
-    
+
     if (payment_status === 'paid') {
       await createNotification({
         userId: booking.user_id,
