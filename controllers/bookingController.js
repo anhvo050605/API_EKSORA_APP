@@ -2,7 +2,9 @@ const mongoose = require('mongoose');
 const Booking = require('../schema/bookingSchema');
 const BookingOptionService = require('../schema/bookingOptionServiceSchema');
 const OptionService = require('../schema/optionServiceSchema');
-const Tour = require('../schema/tourSchema'); // ✅ Thêm import
+const Tour = require('../schema/tourSchema');
+const { createNotification } = require('./controllers/notificationController');
+const { sendTelegramMessage } = require('../utils/telegram');
 // Tạo booking mới và lưu lựa chọn dịch vụ
 exports.createBooking = async (req, res) => {
   try {
@@ -62,6 +64,15 @@ exports.createBooking = async (req, res) => {
     });
 
     await newBooking.save();
+
+    await createNotification({
+      userId: user_id,
+      title: '🎉 Đặt tour thành công',
+      body: `Bạn đã đặt tour ${tour.name} thành công vào ngày ${travel_date}!`
+    });
+    await sendTelegramMessage(
+  `<b>🎉 Đơn hàng mới!</b>\nTour: <b>${tour.name}</b>\nKhách: ${user_id}\nNgày đi: ${travel_date}\nTổng tiền: <b>${totalPrice.toLocaleString()}đ</b>`
+);
 
     // ✅ Lưu option service được chọn (nếu có)
     if (selectedOptionIds.length > 0) {
