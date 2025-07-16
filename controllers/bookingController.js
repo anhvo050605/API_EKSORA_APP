@@ -192,7 +192,7 @@ exports.cancelBooking = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const booking = await Booking.findById(id);
+    const booking = await Booking.findById(id).populate('tour_id');
     if (!booking) {
       return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
     }
@@ -206,11 +206,11 @@ exports.cancelBooking = async (req, res) => {
     booking.status = 'canceled';
     await booking.save();
 
+    // ✅ Tạo thông báo
     await createNotification({
-      userId: booking.user_id,
-      title: 'Huỷ tour thành công',
-      body: `Bạn đã huỷ tour thành công.`,  
-      isRead: false,
+      userId: booking.user_id, // ⚠️ dùng đúng key
+      title: '❌ Hủy tour thành công',
+      body: `Bạn đã huỷ tour "${booking.tour_id.name}" thành công.`, // 👈 lấy tên tour từ populate
     });
 
     res.status(200).json({ message: 'Đơn hàng đã được huỷ thành công', booking });
