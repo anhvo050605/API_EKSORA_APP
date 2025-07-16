@@ -207,7 +207,7 @@ exports.cancelBooking = async (req, res) => {
     await booking.save();
 
     await createNotification({
-      user_id: booking.user_id,
+      userId: booking.user_id,
       title: 'Huỷ tour thành công',
       body: `Bạn đã huỷ tour thành công.`,  
       isRead: false,
