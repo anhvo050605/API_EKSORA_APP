@@ -35,7 +35,6 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const locationRoutes = require('./routes/locationRoutes');
 const suggestionRoute = require('./routes/suggestionRoute');
 const itineraryRoute = require('./routes/itineraryRoute');
-const notificationRoutes = require('./routes/notificationRoutes');
 
 
 // const payos = new PayOS(
@@ -154,7 +153,7 @@ app.use('/api', suggestionRoute);
 app.use('/api', itineraryRoute);
 
 app.use('/api', paymentRoutes);
-app.use('/api/notifications', notificationRoutes);
+
 
 
 app.listen(3000, '0.0.0.0', () => {

@@ -2,9 +2,7 @@ const mongoose = require('mongoose');
 const Booking = require('../schema/bookingSchema');
 const BookingOptionService = require('../schema/bookingOptionServiceSchema');
 const OptionService = require('../schema/optionServiceSchema');
-const Tour = require('../schema/tourSchema');
-const { createNotification } = require('./notificationController');
-
+const Tour = require('../schema/tourSchema'); // ✅ Thêm import
 // Tạo booking mới và lưu lựa chọn dịch vụ
 exports.createBooking = async (req, res) => {
   try {
@@ -64,13 +62,6 @@ exports.createBooking = async (req, res) => {
     });
 
     await newBooking.save();
-
-    await createNotification({
-      userId: user_id,
-      title: '🎉 Đặt tour thành công',
-      body: `Bạn đã đặt tour ${tour.name} thành công vào ngày ${travel_date}!`
-    });
-
 
     // ✅ Lưu option service được chọn (nếu có)
     if (selectedOptionIds.length > 0) {
@@ -192,7 +183,7 @@ exports.cancelBooking = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const booking = await Booking.findById(id).populate('tour_id');
+    const booking = await Booking.findById(id);
     if (!booking) {
       return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
     }
@@ -205,13 +196,6 @@ exports.cancelBooking = async (req, res) => {
 
     booking.status = 'canceled';
     await booking.save();
-
-    // ✅ Tạo thông báo
-    await createNotification({
-      userId: booking.user_id, // ⚠️ dùng đúng key
-      title: '❌ Hủy tour thành công',
-      body: `Bạn đã huỷ tour "${booking.tour_id.name}" thành công.`, // 👈 lấy tên tour từ populate
-    });
 
     res.status(200).json({ message: 'Đơn hàng đã được huỷ thành công', booking });
   } catch (error) {
