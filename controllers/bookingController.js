@@ -70,7 +70,7 @@ exports.createBooking = async (req, res) => {
       title: '🎉 Đặt tour thành công',
       body: `Bạn đã đặt tour ${tour.name} thành công vào ngày ${travel_date}!`
     });
-   
+
 
     // ✅ Lưu option service được chọn (nếu có)
     if (selectedOptionIds.length > 0) {
@@ -205,6 +205,13 @@ exports.cancelBooking = async (req, res) => {
 
     booking.status = 'canceled';
     await booking.save();
+
+    await Notification.create({
+      user_id: booking.user_id,
+      title: 'Huỷ tour thành công',
+      body: `Bạn đã huỷ tour ${booking.tour_title} thành công.`,
+      isRead: false,
+    });
 
     res.status(200).json({ message: 'Đơn hàng đã được huỷ thành công', booking });
   } catch (error) {
