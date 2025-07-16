@@ -5,18 +5,16 @@ exports.getNotifications = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    // ✅ Ép kiểu userId từ string sang ObjectId
-    const objectId = new mongoose.Types.ObjectId(userId);
+    // Kiểm tra userId có hợp lệ không
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'ID không hợp lệ' });
+    }
 
-    const notifications = await Notification.find({ userId: objectId }).sort({ createdAt: -1 });
+    const notifications = await Notification.find({ userId }).sort({ createdAt: -1 });
 
-    res.json(notifications); // Bạn có thể bỏ {} nếu FE không cần dạng { notifications: [...] }
+    res.json(notifications);
   } catch (error) {
     console.error("❌ Lỗi khi lấy thông báo:", error);
-    res.status(500).json({ message: 'Lỗi khi lấy thông báo', error });
+    res.status(500).json({ message: 'Lỗi server', error });
   }
-};
-
-exports.createNotification = async ({ userId, title, body }) => {
-  return await Notification.create({ userId, title, body });
 };
