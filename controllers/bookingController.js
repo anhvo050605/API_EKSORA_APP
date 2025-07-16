@@ -3,7 +3,7 @@ const Booking = require('../schema/bookingSchema');
 const BookingOptionService = require('../schema/bookingOptionServiceSchema');
 const OptionService = require('../schema/optionServiceSchema');
 const Tour = require('../schema/tourSchema');
-const { getNotifications } = require('./notificationController');
+const { createNotification } = require('./notificationController');
 
 // Tạo booking mới và lưu lựa chọn dịch vụ
 exports.createBooking = async (req, res) => {
@@ -65,7 +65,7 @@ exports.createBooking = async (req, res) => {
 
     await newBooking.save();
 
-    await getNotifications({
+    await createNotification({
       userId: user_id,
       title: '🎉 Đặt tour thành công',
       body: `Bạn đã đặt tour ${tour.name} thành công vào ngày ${travel_date}!`
@@ -206,7 +206,7 @@ exports.cancelBooking = async (req, res) => {
     booking.status = 'canceled';
     await booking.save();
 
-    await getNotifications({
+    await createNotification({
       user_id: booking.user_id,
       title: 'Huỷ tour thành công',
       body: `Bạn đã huỷ tour thành công.`,  

@@ -18,3 +18,16 @@ exports.getNotifications = async (req, res) => {
     res.status(500).json({ message: 'Lỗi server', error });
   }
 };
+exports.createNotification = async ({ userId, title, body }) => {
+  try {
+    const newNotification = await Notification.create({
+      userId,
+      title,
+      body,
+      isRead: false, // hoặc true tuỳ nhu cầu
+    });
+    return newNotification;
+  } catch (error) {
+    console.error('❌ Lỗi khi tạo thông báo:', error);
+  }
+};
