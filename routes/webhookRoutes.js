@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const Transaction = require('../schema/transactionSchema');
 const Booking = require('../schema/bookingSchema');
+const { createNotification } = require('../controllers/notificationController');
+const Tour = require('../schema/tourSchema');
 
 router.post('/receive-webhook', express.json(), async (req, res) => {
   try {
@@ -11,7 +13,7 @@ router.post('/receive-webhook', express.json(), async (req, res) => {
     const payload = req.body;
 
     const orderCode = payload?.data?.orderCode;
-    const status = payload?.data?.code === '00' ? 'PAID' : 'FAILED';
+    const status = payload?.code === '00' ? 'PAID' : 'FAILED';
     const amount = payload?.data?.amount;
 
     // if (!orderCode) {
@@ -38,6 +40,23 @@ router.post('/receive-webhook', express.json(), async (req, res) => {
     await transaction.save();
     booking.status = payment_status;
     await booking.save();
+     const tour = await Tour.findById(booking.tour_id);
+    if (payment_status === 'paid') {
+      
+      await createNotification({
+        userId: booking.user_id,
+        title: '💰 Thanh toán thành công',
+        body: `Bạn đã thanh toán thành công cho tour "${tour?.name || 'đã đặt'}".`,
+      });
+    }
+    if (payment_status === 'failed') {
+     
+      await createNotification({
+        userId: booking.user_id,
+        title: '❌ Thanh toán thất bại',
+        body: `Bạn đã hủy thanh toán cho tour "${tour?.name || 'đã đặt'}".`,
+      });
+    }
 
     console.log("✅ Lưu giao dịch và cập nhật booking thành công");
     res.status(200).send('OK');
