@@ -39,18 +39,6 @@ router.post('/receive-webhook', express.json(), async (req, res) => {
     booking.status = payment_status;
     await booking.save();
 
-    const NotificationToken = require('../schema/notificationTokenSchema');
-    const sendPushNotification = require('../utils/sendNotification');
-
-    const tokenDoc = await NotificationToken.findOne({ user_id: booking.user_id });
-    if (tokenDoc?.token) {
-      await sendPushNotification(
-        tokenDoc.token,
-        'Thanh toán thành công!',
-        `Bạn đã thanh toán tour "${booking.tour_id.title}" thành công 🎉`
-      );
-    }
-
     console.log("✅ Lưu giao dịch và cập nhật booking thành công");
     res.status(200).send('OK');
   } catch (err) {
