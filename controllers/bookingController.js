@@ -2,10 +2,7 @@ const mongoose = require('mongoose');
 const Booking = require('../schema/bookingSchema');
 const BookingOptionService = require('../schema/bookingOptionServiceSchema');
 const OptionService = require('../schema/optionServiceSchema');
-const Tour = require('../schema/tourSchema');
-const NotificationToken = require('../schema/notificationTokenSchema');
-const sendPushNotification = require('../utils/sendNotification');
-const axios = require('axios');
+const Tour = require('../schema/tourSchema'); // ✅ Thêm import
 // Tạo booking mới và lưu lựa chọn dịch vụ
 exports.createBooking = async (req, res) => {
   try {
@@ -66,7 +63,6 @@ exports.createBooking = async (req, res) => {
 
     await newBooking.save();
 
-
     // ✅ Lưu option service được chọn (nếu có)
     if (selectedOptionIds.length > 0) {
       const bookingOptions = selectedOptionIds.map(optId => ({
@@ -77,16 +73,6 @@ exports.createBooking = async (req, res) => {
         updated_at: new Date()
       }));
       await BookingOptionService.insertMany(bookingOptions);
-    }
-    const tokenDoc = await NotificationToken.findOne({ user_id: req.body.user_id });
-
-    if (tokenDoc?.token) {
-      await axios.post('https://exp.host/--/api/v2/push/send', {
-        to: tokenDoc.token,
-        title: '🎉 Đặt tour thành công!',
-        body: `Bạn đã đặt tour ${tour.name} thành công. Hãy kiểm tra lại đơn hàng.`,
-        sound: 'default',
-      });
     }
 
     res.status(201).json({
