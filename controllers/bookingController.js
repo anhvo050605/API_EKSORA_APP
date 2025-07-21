@@ -32,6 +32,19 @@ exports.createBooking = async (req, res) => {
 
     // ✅ Tính tổng tiền
     let totalPrice = (quantity_nguoiLon * price_nguoiLon) + (quantity_treEm * price_treEm);
+    const totalTickets = quantity_nguoiLon + quantity_treEm;
+    if (!slot) {
+      return res.status(400).json({ message: 'Không có vé cho ngày đã chọn' });
+    }
+
+    if (slot.remainingTickets < totalTickets) {
+      return res.status(400).json({ message: 'Không đủ vé còn lại' });
+    }
+    // ✅ Kiểm tra available slot cho ngày đã chọn
+    const slot = tour.availableSlots.find(s => {
+      const slotDate = new Date(s.date).toISOString().split('T')[0];
+      return slotDate === travelDateObj.toISOString().split('T')[0];
+    });
     // Bắt đầu với giá tour gốc
     // totalPrice += quantity_nguoiLon * DEFAULT_ADULT_PRICE;
     // totalPrice += quantity_treEm * DEFAULT_CHILD_PRICE;
@@ -60,7 +73,7 @@ exports.createBooking = async (req, res) => {
       coin,
       voucher_id
     });
-
+    slot.remainingTickets -= totalTickets;
     await newBooking.save();
 
     // ✅ Lưu option service được chọn (nếu có)
