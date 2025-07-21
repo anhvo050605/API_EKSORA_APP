@@ -259,27 +259,16 @@ const getAvailableSlots = async (req, res) => {
 
     const maxTickets = tour.max_tickets_per_day || 50;
 
-    const start = new Date(date);
-    start.setHours(0, 0, 0, 0);
-
-    const end = new Date(date);
-    end.setHours(23, 59, 59, 999);
-
     const bookings = await Booking.find({
       tour_id: tourId,
-      travel_date: { $gte: start, $lte: end }
+       travel_date: new Date(date),
     });
 
-    const totalBooked = bookings.reduce(
-      (sum, b) => sum + (b.quantityAdult || 0) + (b.quantityChild || 0),
-      0
-    );
-
+    const totalBooked = bookings.reduce((sum, b) => sum + b.quantityAdult + b.quantityChild, 0);
     const remaining = Math.max(0, maxTickets - totalBooked);
 
     res.json({ remaining });
   } catch (err) {
-    console.error("Lỗi getAvailableSlots:", err);
     res.status(500).json({ error: "Lỗi server" });
   }
 };
