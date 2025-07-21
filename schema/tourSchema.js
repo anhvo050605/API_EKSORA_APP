@@ -14,6 +14,7 @@ const tourSchema = new mongoose.Schema({
   // province: { type: String, required: true },
   opening_time: { type: String }, // giờ mở cửa
   closing_time: { type: String }, // giờ đóng cửa
+  max_tickets_per_day: { type: Number, default: 50 },
   created_at: { type: Date, default: Date.now }
 });
 

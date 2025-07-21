@@ -32,6 +32,7 @@ const createTour = async (req, res) => {
       name, description, price, price_child,
       image, cateID, supplier_id, location, rating,
       opening_time, closing_time,
+      max_tickets_per_day,
       services = [] // 👈 service + options từ admin
     } = req.body;
 
@@ -39,7 +40,8 @@ const createTour = async (req, res) => {
     const newTour = new Tour({
       name, description, price, price_child, image,
       cateID, supplier_id, location, rating,
-      opening_time, closing_time
+      opening_time, closing_time,
+      max_tickets_per_day
     });
 
     await newTour.save({ session });
@@ -173,6 +175,7 @@ const updateTour = async (req, res) => {
       name, description, price, price_child,
       image, cateID, supplier_id, location, rating,
       opening_time, closing_time,
+       max_tickets_per_day,
       services = []
     } = req.body;
 
@@ -180,7 +183,8 @@ const updateTour = async (req, res) => {
     const updatedTour = await Tour.findByIdAndUpdate(id, {
       name, description, price, price_child,
       image, cateID, supplier_id, location, rating,
-      opening_time, closing_time
+      opening_time, closing_time,
+      max_tickets_per_day
     }, { new: true, session });
 
     if (!updatedTour) {
@@ -244,6 +248,29 @@ const updateTour = async (req, res) => {
     return res.status(500).json({ message: "Lỗi máy chủ khi cập nhật tour", error });
   }
 };
+const getAvailableSlots = async (req, res) => {
+  try {
+    const tourId = req.params.id;
+    const date = req.query.date;
+
+    const tour = await Tour.findById(tourId);
+    if (!tour) return res.status(404).json({ message: "Không tìm thấy tour" });
+
+    const maxTickets = tour.max_tickets_per_day || 50;
+
+    const bookings = await Booking.find({
+      tour_id: tourId,
+      travel_date: date,
+    });
+
+    const totalBooked = bookings.reduce((sum, b) => sum + b.quantityAdult + b.quantityChild, 0);
+    const remaining = Math.max(0, maxTickets - totalBooked);
+
+    res.json({ remaining });
+  } catch (err) {
+    res.status(500).json({ error: "Lỗi server" });
+  }
+};
 
 
 
@@ -251,5 +278,5 @@ const updateTour = async (req, res) => {
 module.exports = {
   getAllTours,
   createTour,
-  getTourDetail, deleteTour, updateTour
+  getTourDetail, deleteTour, updateTour,getAvailableSlots
 };
