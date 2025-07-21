@@ -261,7 +261,7 @@ const getAvailableSlots = async (req, res) => {
 
     const bookings = await Booking.find({
       tour_id: tourId,
-      travel_date: date,
+       travel_date: new Date(date),
     });
 
     const totalBooked = bookings.reduce((sum, b) => sum + b.quantityAdult + b.quantityChild, 0);
