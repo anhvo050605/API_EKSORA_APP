@@ -3,7 +3,6 @@ const Booking = require('../schema/bookingSchema');
 const BookingOptionService = require('../schema/bookingOptionServiceSchema');
 const OptionService = require('../schema/optionServiceSchema');
 const Tour = require('../schema/tourSchema'); // ✅ Thêm import
-const Slot = require("../schema/slotSchema");
 // Tạo booking mới và lưu lựa chọn dịch vụ
 exports.createBooking = async (req, res) => {
   try {
@@ -29,7 +28,7 @@ exports.createBooking = async (req, res) => {
 
     // ✅ Convert travel_date sang dạng Date
     const [year, month, day] = travel_date.split('-');
-    const travelDateObj = new Date(`${year}-${month}-${day}T00:00:00Z`);
+    const travelDateObj = new Date(`${year}-${month}-${day}`);
 
     // ✅ Tính tổng tiền
     let totalPrice = (quantity_nguoiLon * price_nguoiLon) + (quantity_treEm * price_treEm);
@@ -47,25 +46,6 @@ exports.createBooking = async (req, res) => {
       const extra = optionDocs.reduce((sum, opt) => sum + (opt.price_extra || 0), 0);
       totalPrice += extra;
     }
-    const totalQuantity = quantity_nguoiLon + quantity_treEm;
-
-    const slot = await Slot.findOne({
-      tour_id,
-      travel_date: {
-        $eq: new Date(travelDateObj.toISOString().split('T')[0]) // bỏ giờ
-      }
-    });
-
-    if (!slot) {
-      return res.status(400).json({ message: "Không tìm thấy slot cho ngày này." });
-    }
-
-    if (slot.remainingTickets < totalQuantity) {
-      return res.status(400).json({ message: "Không đủ vé cho ngày này." });
-    }
-
-    slot.remainingTickets -= totalQuantity;
-    await slot.save();
 
     // ✅ Tạo bản booking
     const newBooking = new Booking({
@@ -216,19 +196,6 @@ exports.cancelBooking = async (req, res) => {
 
     booking.status = 'canceled';
     await booking.save();
-
-      const slot = await Slot.findOne({
-      tour_id: booking.tour_id,
-      travel_date: {
-        $eq: new Date(booking.travel_date.toISOString().split('T')[0])
-      }
-    });
-
-    if (slot) {
-      const totalQuantity = booking.quantity_nguoiLon + booking.quantity_treEm;
-      slot.remainingTickets += totalQuantity;
-      await slot.save();
-    }
 
     res.status(200).json({ message: 'Đơn hàng đã được huỷ thành công', booking });
   } catch (error) {
