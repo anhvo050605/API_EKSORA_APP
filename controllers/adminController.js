@@ -22,7 +22,7 @@ exports.createSupplierAccount = async (req, res) => {
       phone,
       address,
       role: 'supplier',
-      is_active: false,            // hoặc false nếu cần duyệt
+      is_active: true,            // hoặc false nếu cần duyệt
       created_at: new Date(),
     });
 
