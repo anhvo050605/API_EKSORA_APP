@@ -6,6 +6,6 @@ const isAdmin = require('../middleware/isAdmin');
 const verifyToken = require('../middleware/verifyToken'); // middleware xác thực JWT
 
 router.post('/create-supplier', verifyToken, isAdmin, adminController.createSupplierAccount);
-router.put('/approve-supplier/:supplierId', verifyToken, isAdmin, adminController.approveSupplier);
+// router.put('/approve-supplier/:supplierId', verifyToken, isAdmin, adminController.approveSupplier);
 
 module.exports = router;

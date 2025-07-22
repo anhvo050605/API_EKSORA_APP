@@ -35,23 +35,3 @@ exports.createSupplierAccount = async (req, res) => {
   }
 };
 // controllers/adminController.js
-exports.approveSupplier = async (req, res) => {
-  try {
-    const { supplierId } = req.params;
-
-    const updatedSupplier = await User.findByIdAndUpdate(
-      supplierId,
-      { is_active: true },
-      { new: true }
-    );
-
-    if (!updatedSupplier) {
-      return res.status(404).json({ message: 'Không tìm thấy nhà cung cấp' });
-    }
-
-    res.status(200).json({ message: 'Đã duyệt tài khoản supplier', supplier: updatedSupplier });
-  } catch (error) {
-    res.status(500).json({ message: 'Lỗi khi duyệt supplier', error });
-  }
-};
-
