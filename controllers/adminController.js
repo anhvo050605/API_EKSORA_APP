@@ -22,7 +22,7 @@ exports.createSupplierAccount = async (req, res) => {
       phone,
       address,
       role: 'supplier',
-      is_active: true,            // hoặc false nếu cần duyệt
+      is_active: false,            // hoặc false nếu cần duyệt
       created_at: new Date(),
     });
 
@@ -34,3 +34,24 @@ exports.createSupplierAccount = async (req, res) => {
     res.status(500).json({ message: 'Lỗi máy chủ' });
   }
 };
+// controllers/adminController.js
+exports.approveSupplier = async (req, res) => {
+  try {
+    const { supplierId } = req.params;
+
+    const updatedSupplier = await User.findByIdAndUpdate(
+      supplierId,
+      { is_active: true },
+      { new: true }
+    );
+
+    if (!updatedSupplier) {
+      return res.status(404).json({ message: 'Không tìm thấy nhà cung cấp' });
+    }
+
+    res.status(200).json({ message: 'Đã duyệt tài khoản supplier', supplier: updatedSupplier });
+  } catch (error) {
+    res.status(500).json({ message: 'Lỗi khi duyệt supplier', error });
+  }
+};
+
