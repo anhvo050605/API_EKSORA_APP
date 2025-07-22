@@ -15,6 +15,11 @@ const tourSchema = new mongoose.Schema({
   opening_time: { type: String }, // giờ mở cửa
   closing_time: { type: String }, // giờ đóng cửa
   max_tickets_per_day: { type: Number, default: 50 },
+  status: {
+    type: String,
+    enum: ['requested', 'active', 'deactive'],
+    default: 'requested'
+  },
   created_at: { type: Date, default: Date.now }
 });
 

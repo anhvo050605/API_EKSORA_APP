@@ -9,9 +9,11 @@ const Booking = require('../schema/bookingSchema');
 // Lấy tất cả tour
 const getAllTours = async (req, res) => {
   try {
-    const { cateID } = req.query;
+    const { cateID, status } = req.query;
 
-    const query = cateID ? { cateID: new mongoose.Types.ObjectId(cateID) } : {};
+    const query = {};
+    if (cateID) query.cateID = new mongoose.Types.ObjectId(cateID);
+    if (status) query.status = status;
 
     const tours = await Tour.find(query)
       .populate('cateID')
@@ -34,6 +36,7 @@ const createTour = async (req, res) => {
       image, cateID, supplier_id, location, rating,
       opening_time, closing_time,
       max_tickets_per_day,
+      status,
       services = [] // 👈 service + options từ admin
     } = req.body;
 
@@ -42,7 +45,8 @@ const createTour = async (req, res) => {
       name, description, price, price_child, image,
       cateID, supplier_id, location, rating,
       opening_time, closing_time,
-      max_tickets_per_day
+      max_tickets_per_day,
+      status
     });
 
     await newTour.save({ session });
@@ -176,7 +180,8 @@ const updateTour = async (req, res) => {
       name, description, price, price_child,
       image, cateID, supplier_id, location, rating,
       opening_time, closing_time,
-       max_tickets_per_day,
+      max_tickets_per_day,
+      status,
       services = []
     } = req.body;
 
@@ -185,7 +190,8 @@ const updateTour = async (req, res) => {
       name, description, price, price_child,
       image, cateID, supplier_id, location, rating,
       opening_time, closing_time,
-      max_tickets_per_day
+      max_tickets_per_day,
+      status
     }, { new: true, session });
 
     if (!updatedTour) {
@@ -261,7 +267,7 @@ const getAvailableSlots = async (req, res) => {
 
     const bookings = await Booking.find({
       tour_id: tourId,
-       travel_date: new Date(date),
+      travel_date: new Date(date),
     });
 
     const totalBooked = bookings.reduce((sum, b) => sum + b.quantityAdult + b.quantityChild, 0);
@@ -279,5 +285,5 @@ const getAvailableSlots = async (req, res) => {
 module.exports = {
   getAllTours,
   createTour,
-  getTourDetail, deleteTour, updateTour,getAvailableSlots
+  getTourDetail, deleteTour, updateTour, getAvailableSlots
 };
