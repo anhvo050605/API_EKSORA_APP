@@ -35,7 +35,7 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const locationRoutes = require('./routes/locationRoutes');
 const suggestionRoute = require('./routes/suggestionRoute');
 const itineraryRoute = require('./routes/itineraryRoute');
-
+const adminRoutes = require('./routes/adminRoutes');
 
 
 // const payos = new PayOS(
@@ -155,7 +155,7 @@ app.use('/api', itineraryRoute);
 
 app.use('/api', paymentRoutes);
 
-
+app.use('/api/admin', adminRoutes);
 
 app.listen(3000, '0.0.0.0', () => {
   console.log('Server running on all interfaces');
