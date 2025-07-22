@@ -3,7 +3,7 @@ const Review = require('../schema/reviewSchema');
 // Tạo review mới
 const createReview = async (req, res) => {
   try {
-    const { promotion_id,rating, comment, status } = req.body;
+    const { promotion_id,rating, comment, status, images  } = req.body;
     const userId = req.body.user?.id || req.body.userId;
     const tourId = req.body.tour?.id || req.body.tourId;
     // Validate dữ liệu tối thiểu
@@ -17,6 +17,7 @@ const createReview = async (req, res) => {
       tour: tourId,
       rating,
       comment,
+      images,
       status: status || 'pending'
     });
 

@@ -8,6 +8,7 @@ const reviewSchema = new mongoose.Schema({
 
   rating: { type: Number, required: true, min: 1, max: 5 },
   comment: { type: String, required: false },
+  images: [{ type: String }], 
   status: { type: String, default: 'pending' }, // vd: 'active', 'pending', 'blocked'
   created_at: { type: Date, default: Date.now }
 });
