@@ -279,6 +279,9 @@ const getAvailableSlots = async (req, res) => {
   }
 };
 const createTourBySupplier = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const {
       name, description, price, price_child,
@@ -289,22 +292,29 @@ const createTourBySupplier = async (req, res) => {
     } = req.body;
 
     const newTour = new Tour({
-      name, description, price, price_child, image,
-      cateID, location, rating,
-      opening_time, closing_time,
+      name,
+      description,
+      price,
+      price_child,
+      image,
+      cateID,
+      location,
+      rating,
+      opening_time,
+      closing_time,
       max_tickets_per_day,
-      status: 'requested',
-      created_by: req.user.userId // từ verifyToken
+      status: 'requested', // ✅ trạng thái mặc định chờ duyệt
+      created_by: req.user.userId // ✅ lấy từ token
     });
 
-    await newTour.save();
+    await newTour.save({ session });
 
     for (const svc of services) {
       const newService = await new Service({
         name: svc.name,
         type: svc.type,
         tour_id: newTour._id
-      }).save();
+      }).save({ session });
 
       const optionDocs = (svc.options || []).map(opt => ({
         title: opt.title,
@@ -313,15 +323,27 @@ const createTourBySupplier = async (req, res) => {
         service_id: newService._id
       }));
 
-      if (optionDocs.length > 0) await OptionService.insertMany(optionDocs);
+      if (optionDocs.length > 0) {
+        await OptionService.insertMany(optionDocs, { session });
+      }
     }
 
-    res.status(201).json({ message: 'Tạo tour thành công, đang chờ admin duyệt', tour: newTour });
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(201).json({
+      message: 'Tạo tour thành công, đang chờ admin duyệt',
+      tour: newTour
+    });
   } catch (error) {
-    console.error('Lỗi tạo tour:', error);
+    await session.abortTransaction();
+    session.endSession();
+
+    console.error('❌ Lỗi tạo tour bởi đối tác:', error);
     res.status(500).json({ message: 'Lỗi máy chủ', error });
   }
 };
+
 const approveTour = async (req, res) => {
   try {
     const { tourId } = req.params;
