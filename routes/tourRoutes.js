@@ -14,4 +14,7 @@ router.get('/tours/:id/available-slots', getAvailableSlots);
 
 router.post('/create-by-supplier', verifyToken, requireRole('supplier'), tourController.createTourBySupplier);
 router.put('/approve/:tourId', verifyToken, requireRole('admin'), tourController.approveTour);
+router.delete('/supplier/:tourId', verifyToken, requireRole('supplier'), tourController.deleteTourBySupplier);
+router.put('/supplier/:tourId', verifyToken, requireRole('supplier'), tourController.updateTourBySupplier);
+
 module.exports = router;

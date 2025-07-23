@@ -368,6 +368,55 @@ const approveTour = async (req, res) => {
     res.status(500).json({ message: 'Lỗi khi duyệt tour', error });
   }
 };
+const deleteTourBySupplier = async (req, res) => {
+  try {
+    const { tourId } = req.params;
+    const supplierId = req.user.userId;
+
+    const tour = await Tour.findById(tourId);
+    if (!tour) {
+      return res.status(404).json({ message: 'Không tìm thấy tour' });
+    }
+
+    if (tour.created_by.toString() !== supplierId) {
+      return res.status(403).json({ message: 'Bạn không có quyền xóa tour này' });
+    }
+
+    await Tour.findByIdAndDelete(tourId);
+    res.status(200).json({ message: 'Xóa tour thành công' });
+  } catch (error) {
+    console.error('Lỗi xóa tour bởi supplier:', error);
+    res.status(500).json({ message: 'Lỗi máy chủ khi xóa tour', error });
+  }
+};
+const updateTourBySupplier = async (req, res) => {
+  try {
+    const { tourId } = req.params;
+    const supplierId = req.user.userId;
+
+    const tour = await Tour.findById(tourId);
+    if (!tour) {
+      return res.status(404).json({ message: 'Không tìm thấy tour' });
+    }
+
+    if (tour.created_by.toString() !== supplierId) {
+      return res.status(403).json({ message: 'Bạn không có quyền chỉnh sửa tour này' });
+    }
+
+    const updateFields = req.body;
+    const updated = await Tour.findByIdAndUpdate(tourId, updateFields, { new: true });
+
+    res.status(200).json({
+      message: 'Cập nhật tour thành công',
+      tour: updated
+    });
+  } catch (error) {
+    console.error('Lỗi cập nhật tour bởi supplier:', error);
+    res.status(500).json({ message: 'Lỗi máy chủ khi cập nhật tour', error });
+  }
+};
+
+
 
 
 
@@ -375,5 +424,12 @@ const approveTour = async (req, res) => {
 module.exports = {
   getAllTours,
   createTour,
-  getTourDetail, deleteTour, updateTour, getAvailableSlots,createTourBySupplier,approveTour
+  getTourDetail, 
+  deleteTour, 
+  updateTour, 
+  getAvailableSlots,
+  createTourBySupplier,
+  approveTour,
+  deleteTourBySupplier,
+  updateTourBySupplier
 };
