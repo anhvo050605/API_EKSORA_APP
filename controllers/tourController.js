@@ -278,7 +278,7 @@ const getAvailableSlots = async (req, res) => {
     res.status(500).json({ error: "Lỗi server" });
   }
 };
-const reateTourBySupplier = async (req, res) => {
+const createTourBySupplier = async (req, res) => {
   try {
     const {
       name, description, price, price_child,
@@ -353,5 +353,5 @@ const approveTour = async (req, res) => {
 module.exports = {
   getAllTours,
   createTour,
-  getTourDetail, deleteTour, updateTour, getAvailableSlots,reateTourBySupplier,approveTour
+  getTourDetail, deleteTour, updateTour, getAvailableSlots,createTourBySupplier,approveTour
 };
