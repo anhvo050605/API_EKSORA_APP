@@ -278,6 +278,74 @@ const getAvailableSlots = async (req, res) => {
     res.status(500).json({ error: "Lỗi server" });
   }
 };
+const reateTourBySupplier = async (req, res) => {
+  try {
+    const {
+      name, description, price, price_child,
+      image, cateID, location, rating,
+      opening_time, closing_time,
+      max_tickets_per_day,
+      services = []
+    } = req.body;
+
+    const newTour = new Tour({
+      name, description, price, price_child, image,
+      cateID, location, rating,
+      opening_time, closing_time,
+      max_tickets_per_day,
+      status: 'requested',
+      created_by: req.user.userId // từ verifyToken
+    });
+
+    await newTour.save();
+
+    for (const svc of services) {
+      const newService = await new Service({
+        name: svc.name,
+        type: svc.type,
+        tour_id: newTour._id
+      }).save();
+
+      const optionDocs = (svc.options || []).map(opt => ({
+        title: opt.title,
+        price_extra: opt.price_extra || 0,
+        description: opt.description || '',
+        service_id: newService._id
+      }));
+
+      if (optionDocs.length > 0) await OptionService.insertMany(optionDocs);
+    }
+
+    res.status(201).json({ message: 'Tạo tour thành công, đang chờ admin duyệt', tour: newTour });
+  } catch (error) {
+    console.error('Lỗi tạo tour:', error);
+    res.status(500).json({ message: 'Lỗi máy chủ', error });
+  }
+};
+const approveTour = async (req, res) => {
+  try {
+    const { tourId } = req.params;
+    const { status } = req.body; // "active" hoặc "deactive"
+
+    if (!['active', 'deactive'].includes(status)) {
+      return res.status(400).json({ message: 'Trạng thái không hợp lệ' });
+    }
+
+    const tour = await Tour.findByIdAndUpdate(
+      tourId,
+      { status },
+      { new: true }
+    );
+
+    if (!tour) {
+      return res.status(404).json({ message: 'Không tìm thấy tour' });
+    }
+
+    res.status(200).json({ message: 'Cập nhật trạng thái tour thành công', tour });
+  } catch (error) {
+    res.status(500).json({ message: 'Lỗi khi duyệt tour', error });
+  }
+};
 
 
 
@@ -285,5 +353,5 @@ const getAvailableSlots = async (req, res) => {
 module.exports = {
   getAllTours,
   createTour,
-  getTourDetail, deleteTour, updateTour, getAvailableSlots
+  getTourDetail, deleteTour, updateTour, getAvailableSlots,reateTourBySupplier,approveTour
 };
