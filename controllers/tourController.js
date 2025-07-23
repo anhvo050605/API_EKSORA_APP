@@ -369,127 +369,7 @@ const approveTour = async (req, res) => {
     res.status(500).json({ message: 'Lỗi khi duyệt tour', error });
   }
 };
-const deleteTourBySupplier = async (req, res) => {
-  try {
-    const { tourId } = req.params;
-    const supplierId = req.user.userId;
 
-    const tour = await Tour.findById(tourId);
-    if (!tour) {
-      return res.status(404).json({ message: 'Không tìm thấy tour' });
-    }
-
-    if (!tour.created_by || tour.created_by.toString() !== supplierId) {
-      return res.status(403).json({ message: 'Bạn không có quyền chỉnh sửa tour này' });
-    }
-
-    await Tour.findByIdAndDelete(tourId);
-    res.status(200).json({ message: 'Xóa tour thành công' });
-  } catch (error) {
-    console.error('Lỗi xóa tour bởi supplier:', error);
-    res.status(500).json({ message: 'Lỗi máy chủ khi xóa tour', error });
-  }
-};
-const updateTourBySupplier = async (req, res) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
-  try {
-    const { tourId } = req.params;
-    const supplierId = req.user.userId;
-
-    if (!mongoose.Types.ObjectId.isValid(tourId)) {
-      return res.status(400).json({ message: "ID không hợp lệ" });
-    }
-
-    const existingTour = await Tour.findById(tourId).session(session);
-    if (!existingTour) {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(404).json({ message: "Không tìm thấy tour" });
-    }
-
-    if (existingTour.created_by.toString() !== supplierId) {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(403).json({ message: "Bạn không có quyền chỉnh sửa tour này" });
-    }
-
-    const {
-      name, description, price, price_child,
-      image, cateID, location, rating,
-      opening_time, closing_time,
-      max_tickets_per_day,
-      services = []
-    } = req.body;
-
-    const updatedTour = await Tour.findByIdAndUpdate(
-      tourId,
-      {
-        name, description, price, price_child,
-        image, cateID, location, rating,
-        opening_time, closing_time,
-        max_tickets_per_day,
-        status: 'requested' // Supplier cập nhật -> trở lại trạng thái chờ duyệt
-      },
-      { new: true, session }
-    );
-
-    // Xoá service cũ + option service
-    const oldServices = await Service.find({ tour_id: tourId }).session(session);
-    const oldServiceIds = oldServices.map(s => s._id);
-
-    await OptionService.deleteMany({ service_id: { $in: oldServiceIds } }).session(session);
-    await Service.deleteMany({ tour_id: tourId }).session(session);
-
-    // Tạo service mới
-    for (const svc of services) {
-      const newService = await new Service({
-        name: svc.name,
-        type: svc.type,
-        tour_id: tourId
-      }).save({ session });
-
-      const optionDocs = (svc.options || []).map(opt => ({
-        title: opt.title,
-        price_extra: opt.price_extra || 0,
-        description: opt.description || '',
-        service_id: newService._id
-      }));
-
-      if (optionDocs.length > 0) {
-        await OptionService.insertMany(optionDocs, { session });
-      }
-    }
-
-    // Lấy lại service mới tạo
-    const servicess = await Service.find({ tour_id: tourId }).session(session);
-    const servicesWithOptions = await Promise.all(
-      servicess.map(async (service) => {
-        const options = await OptionService.find({ service_id: service._id }).session(session);
-        return {
-          ...service.toObject(),
-          options
-        };
-      })
-    );
-
-    await session.commitTransaction();
-    session.endSession();
-
-    return res.status(200).json({
-      message: "Supplier đã cập nhật tour và dịch vụ thành công (đang chờ duyệt)",
-      tour: updatedTour,
-      services: servicesWithOptions
-    });
-
-  } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
-    console.error("❌ Lỗi khi supplier cập nhật tour:", error);
-    return res.status(500).json({ message: "Lỗi máy chủ khi cập nhật tour", error });
-  }
-};
 
 
 
@@ -506,6 +386,5 @@ module.exports = {
   getAvailableSlots,
   createTourBySupplier,
   approveTour,
-  deleteTourBySupplier,
-  updateTourBySupplier
+  
 };
