@@ -290,7 +290,7 @@ const createTourBySupplier = async (req, res) => {
       max_tickets_per_day,
       services = []
     } = req.body;
-
+    const supplier_id = req.user._id;
     const newTour = new Tour({
       name,
       description,
@@ -300,6 +300,7 @@ const createTourBySupplier = async (req, res) => {
       cateID,
       location,
       rating,
+      supplier_id,
       opening_time,
       closing_time,
       max_tickets_per_day,
@@ -378,8 +379,8 @@ const deleteTourBySupplier = async (req, res) => {
       return res.status(404).json({ message: 'Không tìm thấy tour' });
     }
 
-    if (tour.created_by.toString() !== supplierId) {
-      return res.status(403).json({ message: 'Bạn không có quyền xóa tour này' });
+    if (!tour.created_by || tour.created_by.toString() !== supplierId) {
+      return res.status(403).json({ message: 'Bạn không có quyền chỉnh sửa tour này' });
     }
 
     await Tour.findByIdAndDelete(tourId);
@@ -499,9 +500,9 @@ const updateTourBySupplier = async (req, res) => {
 module.exports = {
   getAllTours,
   createTour,
-  getTourDetail, 
-  deleteTour, 
-  updateTour, 
+  getTourDetail,
+  deleteTour,
+  updateTour,
   getAvailableSlots,
   createTourBySupplier,
   approveTour,
