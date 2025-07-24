@@ -36,6 +36,9 @@ const locationRoutes = require('./routes/locationRoutes');
 const suggestionRoute = require('./routes/suggestionRoute');
 const itineraryRoute = require('./routes/itineraryRoute');
 const adminRoutes = require('./routes/adminRoutes');
+const facebookRoutes = require('./routes/facebookRoutes');
+
+
 
 
 // const payos = new PayOS(
@@ -53,6 +56,7 @@ const adminRoutes = require('./routes/adminRoutes');
 var app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
+
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'payment', 'index.html'));
@@ -156,6 +160,13 @@ app.use('/api', itineraryRoute);
 app.use('/api', paymentRoutes);
 
 app.use('/api/admin', adminRoutes);
+
+
+app.use('api/', facebookRoutes);
+
+app.get("/health", (req, res) => {
+  res.json({ status: "OK", timestamp: new Date().toISOString() });
+});
 
 app.listen(3000, '0.0.0.0', () => {
   console.log('Server running on all interfaces');
