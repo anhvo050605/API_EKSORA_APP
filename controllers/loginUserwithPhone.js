@@ -16,7 +16,8 @@ const loginWithPhone = async (req, res) => {
     if (!user) {
       return res.status(401).json({ message: 'Số điện thoại hoặc mật khẩu không đúng' });
     }
-
+    console.log("Password nhập:", password);
+    console.log("Password trong DB (hash):", user.password);
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ message: 'Số điện thoại hoặc mật khẩu không đúng' });
@@ -32,7 +33,7 @@ const loginWithPhone = async (req, res) => {
       message: 'Đăng nhập thành công',
       token,
       userId: user._id,
-       user: {
+      user: {
         firstName: user.first_name || '',
         lastName: user.last_name || '',
         email: user.email || '',
