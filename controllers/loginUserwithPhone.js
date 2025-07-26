@@ -12,11 +12,6 @@ const loginWithPhone = async (req, res) => {
       return res.status(400).json({ message: 'Vui lòng nhập số điện thoại và mật khẩu' });
     }
 
-    const phoneRegex = /^(0|\+84)(\d{9,10})$/;
-    if (!phoneRegex.test(phone)) {
-      return res.status(400).json({ message: 'Số điện thoại không hợp lệ' });
-    }
-
     const user = await User.findOne({ phone });
     if (!user) {
       return res.status(401).json({ message: 'Số điện thoại hoặc mật khẩu không đúng' });
