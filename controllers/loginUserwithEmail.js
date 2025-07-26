@@ -26,7 +26,7 @@ const loginUserwithEmail = async (req, res) => {
       return res.status(400).json({ message: 'Email không tồn tại' });
     }
     console.log("Password nhập:", password);
-    console.log("Password trong DB (hash):", user.password);
+    console.log("Password trong DB (hashemail):", user.password);
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Mật khẩu không đúng' });
