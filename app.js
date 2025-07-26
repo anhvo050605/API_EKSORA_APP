@@ -37,7 +37,7 @@ const suggestionRoute = require('./routes/suggestionRoute');
 const itineraryRoute = require('./routes/itineraryRoute');
 const adminRoutes = require('./routes/adminRoutes');
 const facebookRoutes = require('./routes/facebookRoutes');
-
+const shareRoutes = require('./routes/shareRoutes');
 
 
 
@@ -160,6 +160,9 @@ app.use('/api', itineraryRoute);
 app.use('/api', paymentRoutes);
 
 app.use('/api/admin', adminRoutes);
+
+app.use('/api/share', shareRoutes);
+app.use('/', shareRoutes); 
 
 
 app.use('/api', facebookRoutes);
