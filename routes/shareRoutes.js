@@ -3,7 +3,7 @@ const router = express.Router();
 const {
   createLink,
   handleShareLink
-} = require('../controller/shareController');
+} = require('../controllers/shareController');
 
 // POST để tạo liên kết chia sẻ
 router.post('/create-link', createLink);
