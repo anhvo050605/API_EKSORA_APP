@@ -170,6 +170,32 @@ app.use('/api', facebookRoutes);
 app.get("/health", (req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
 });
+app.get('/api/tour/:id', (req, res) => {
+  const { id } = req.params;
+
+  // 👉 Chuyển hướng sang giao diện chi tiết tour (Next.js hoặc frontend bạn đang dùng)
+  res.redirect(`http://160.250.246.76:3000/trip-detail/${id}`);
+});
+app.get('/redirect/:id', (req, res) => {
+  const { id } = req.params;
+
+  res.send(`
+    <html>
+      <head>
+        <title>Đang mở ứng dụng...</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script>
+          setTimeout(() => {
+            window.location.href = "eksora://trip-detail/${id}";
+          }, 100); // nhanh hơn để tránh bị block
+        </script>
+      </head>
+      <body>
+        <p>Nếu không được tự động chuyển, <a href="eksora://trip-detail/${id}">bấm vào đây</a></p>
+      </body>
+    </html>
+  `);
+});
 
 app.listen(3000, '0.0.0.0', () => {
   console.log('Server running on all interfaces');
