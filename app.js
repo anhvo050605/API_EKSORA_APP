@@ -178,20 +178,30 @@ app.get('/tour/:id', (req, res) => {
 });
 app.get('/redirect/:id', (req, res) => {
   const { id } = req.params;
+  const deepLink = `eksora://trip-detail/${id}`;
 
   res.send(`
+    <!DOCTYPE html>
     <html>
       <head>
-        <title>Đang mở ứng dụng...</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Mở ứng dụng EKSORA</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <script>
-          setTimeout(() => {
-            window.location.href = "eksora://trip-detail/${id}";
-          }, 100); // nhanh hơn để tránh bị block
+          window.onload = function () {
+            // Tự động chuyển hướng
+            window.location = "${deepLink}";
+            // Sau vài giây, nếu không có app thì redirect đến store hoặc hiển thị nút
+            setTimeout(() => {
+              document.getElementById('fallback').style.display = 'block';
+            }, 2000);
+          }
         </script>
       </head>
       <body>
-        <p>Nếu không được tự động chuyển, <a href="eksora://trip-detail/${id}">bấm vào đây</a></p>
+        <p>Đang mở ứng dụng...</p>
+        <div id="fallback" style="display:none;">
+          <p>Không mở được ứng dụng? <a href="${deepLink}" target="_self">Bấm vào đây</a></p>
+        </div>
       </body>
     </html>
   `);
