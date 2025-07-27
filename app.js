@@ -170,7 +170,7 @@ app.use('/api', facebookRoutes);
 app.get("/health", (req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
 });
-app.get('/api/tour/:id', (req, res) => {
+app.get('/tour/:id', (req, res) => {
   const { id } = req.params;
 
   // 👉 Chuyển hướng sang giao diện chi tiết tour (Next.js hoặc frontend bạn đang dùng)
