@@ -23,7 +23,6 @@ const tourSchema = new mongoose.Schema({
   created_by: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Supplier', // hoặc 'User' nếu có nhiều loại người dùng
-    required: true
   },
   created_at: { type: Date, default: Date.now }
 });
