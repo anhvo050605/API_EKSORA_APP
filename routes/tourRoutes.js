@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getAllTours, createTour,getTourDetail,deleteTour,updateTour,getAvailableSlots } = require('../controllers/tourController');
+const { getAllTours, createTour,getTourDetail,deleteTour,updateTour,getAvailableSlots,getAllToursIncludeFree } = require('../controllers/tourController');
 const verifyToken = require('../middleware/verifyToken');
 const { requireRole } = require('../middleware/roleMiddleware');
 const tourController = require('../controllers/tourController');
