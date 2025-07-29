@@ -6,6 +6,8 @@ const { requireRole } = require('../middleware/roleMiddleware');
 const tourController = require('../controllers/tourController');
 
 router.get('/tours', getAllTours);
+router.get('/all-include-free', getAllToursIncludeFree);
+
 router.post('/tours', createTour);
 router.get('/tours/:id', getTourDetail);
 router.delete('/tours/:id', deleteTour);

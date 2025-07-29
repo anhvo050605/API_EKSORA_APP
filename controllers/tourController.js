@@ -27,6 +27,26 @@ const getAllTours = async (req, res) => {
     res.status(500).json({ message: 'Lỗi máy chủ', error });
   }
 };
+const getAllToursIncludeFree = async (req, res) => {
+  try {
+    const { cateID, status } = req.query;
+
+    const query = {};
+
+    if (cateID) query.cateID = new mongoose.Types.ObjectId(cateID);
+    if (status) query.status = status;
+
+    const tours = await Tour.find(query)
+      .populate('cateID')
+      .populate('supplier_id');
+
+    res.status(200).json(tours);
+  } catch (error) {
+    console.error('Lỗi khi lấy tất cả tour (bao gồm cả miễn phí):', error);
+    res.status(500).json({ message: 'Lỗi máy chủ', error });
+  }
+};
+
 
 // Tạo tour mới
 const createTour = async (req, res) => {
@@ -384,6 +404,7 @@ module.exports = {
   createTour,
   getTourDetail,
   deleteTour,
+  getAllToursIncludeFree,
   updateTour,
   getAvailableSlots,
   createTourBySupplier,
