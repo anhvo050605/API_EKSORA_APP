@@ -27,10 +27,12 @@ exports.createCategory = async (req, res) => {
 
 // Lấy danh sách tour theo cateID (ID danh mục)
 exports.getToursByLocation = async (req, res) => {
-  const { cateID } = req.query; 
+  const { cateID } = req.query;
 
   try {
-    let query = {};
+    let query = {
+      price: { $gt: 0 } 
+    };
     if (cateID && cateID.toLowerCase() !== 'all') {
       query.cateID = new mongoose.Types.ObjectId(cateID);
     }
@@ -40,6 +42,23 @@ exports.getToursByLocation = async (req, res) => {
   } catch (error) {
     console.error("Lỗi khi lấy tour theo danh mục (cateID):", error);
     res.status(500).json({ message: "Lỗi khi lấy tour theo danh mục (cateID)" });
+  }
+};
+exports.getAllToursByLocation = async (req, res) => {
+  const { cateID } = req.query;
+
+  try {
+    let query = {};
+
+    if (cateID && cateID.toLowerCase() !== 'all') {
+      query.cateID = new mongoose.Types.ObjectId(cateID);
+    }
+
+    const tours = await Tour.find(query).populate('cateID');
+    res.status(200).json(tours);
+  } catch (error) {
+    console.error("Lỗi khi lấy tất cả tour (bao gồm cả miễn phí):", error);
+    res.status(500).json({ message: "Lỗi máy chủ" });
   }
 };
 
