@@ -12,7 +12,7 @@ const getAllTours = async (req, res) => {
     const { cateID, status } = req.query;
 
     const query = {
-      price: { $gt: 0 }, // 👉 Chỉ lấy tour có price > 0
+      // price: { $gt: 0 }, // 👉 Chỉ lấy tour có price > 0
     };
     if (cateID) query.cateID = new mongoose.Types.ObjectId(cateID);
     if (status) query.status = status;
