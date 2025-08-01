@@ -35,36 +35,39 @@ exports.createPaymentLink = async (req, res) => {
 
     // Xử lý orderCode
     let orderCode = booking.order_code;
-    let needNewOrderCode = false;
 
     if (orderCode) {
       try {
         const existingLink = await payos.getPaymentLink(orderCode);
+
         if (existingLink?.checkoutUrl) {
           return res.status(200).json({
             url: existingLink.checkoutUrl,
             orderCode,
             booking_id
           });
+        } else {
+          console.warn("⚠️ Link đã tồn tại nhưng không dùng được → tạo orderCode mới");
+          booking.order_code = undefined;
+          await booking.save();
+          orderCode = undefined;
         }
       } catch (err) {
         const payosError = err?.response?.data?.error;
+
         if (payosError === 'ORDER_NOT_FOUND') {
           console.log("🔁 Không tìm thấy đơn hàng cũ trên PayOS → tạo mới");
-        } else if (payosError === 'ORDER_ALREADY_EXISTED') {
-          console.warn("⚠️ Đơn hàng đã tồn tại nhưng không thể tái sử dụng → tạo orderCode mới");
-          needNewOrderCode = true;
         } else {
-          console.error("❌ Lỗi khi kiểm tra đơn hàng trên PayOS:", err?.response?.data || err.message);
-          return res.status(400).json({
-            message: 'Không thể xử lý đơn hàng',
-            error: payosError || err.message
-          });
+          console.warn("⚠️ Có lỗi khi kiểm tra orderCode → tạo orderCode mới");
+          booking.order_code = undefined;
+          await booking.save();
+          orderCode = undefined;
         }
       }
     }
 
-    if (!orderCode || needNewOrderCode) {
+    // Tạo mới orderCode nếu chưa có hoặc đã reset
+    if (!orderCode) {
       orderCode = parseInt(
         new mongoose.Types.ObjectId().toHexString().slice(-12),
         16
