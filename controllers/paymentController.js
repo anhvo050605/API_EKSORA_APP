@@ -1,4 +1,3 @@
-// controllers/paymentController.js
 const Booking = require('../schema/bookingSchema');
 const Transaction = require('../schema/transactionSchema');
 const PayOS = require('@payos/node');
@@ -34,47 +33,51 @@ exports.createPaymentLink = async (req, res) => {
       return res.status(404).json({ message: 'Booking không tồn tại' });
     }
 
-    // Tạo hoặc dùng lại orderCode
+    // Xử lý orderCode
     let orderCode = booking.order_code;
-    if (!orderCode) {
+    let needNewOrderCode = false;
+
+    if (orderCode) {
+      try {
+        const existingLink = await payos.getPaymentLink(orderCode);
+        if (existingLink?.checkoutUrl) {
+          return res.status(200).json({
+            url: existingLink.checkoutUrl,
+            orderCode,
+            booking_id
+          });
+        }
+      } catch (err) {
+        const payosError = err?.response?.data?.error;
+        if (payosError === 'ORDER_NOT_FOUND') {
+          console.log("🔁 Không tìm thấy đơn hàng cũ trên PayOS → tạo mới");
+        } else if (payosError === 'ORDER_ALREADY_EXISTED') {
+          console.warn("⚠️ Đơn hàng đã tồn tại nhưng không thể tái sử dụng → tạo orderCode mới");
+          needNewOrderCode = true;
+        } else {
+          console.error("❌ Lỗi khi kiểm tra đơn hàng trên PayOS:", err?.response?.data || err.message);
+          return res.status(400).json({
+            message: 'Không thể xử lý đơn hàng',
+            error: payosError || err.message
+          });
+        }
+      }
+    }
+
+    if (!orderCode || needNewOrderCode) {
       orderCode = parseInt(
-        new mongoose.Types.ObjectId(booking_id).toHexString().slice(-12),
+        new mongoose.Types.ObjectId().toHexString().slice(-12),
         16
       );
       booking.order_code = orderCode;
       await booking.save();
     }
 
-    // ✅ Giới hạn mô tả 25 ký tự
-    const safeDescription =
-      typeof description === 'string'
-        ? description.substring(0, 25)
-        : 'Thanh toán đơn hàng';
+    // Giới hạn mô tả 25 ký tự
+    const safeDescription = typeof description === 'string'
+      ? description.substring(0, 25)
+      : 'Thanh toán đơn hàng';
 
-    // Nếu đã có orderCode, thử lấy lại link cũ từ PayOS
-    try {
-      const existingLink = await payos.getPaymentLink(orderCode);
-      if (existingLink?.checkoutUrl) {
-        return res.status(200).json({
-          url: existingLink.checkoutUrl,
-          orderCode,
-          booking_id
-        });
-      }
-    } catch (err) {
-      const payosError = err?.response?.data?.error;
-      if (payosError === 'ORDER_NOT_FOUND') {
-        console.log("🔁 Không tìm thấy đơn hàng cũ trên PayOS → sẽ tạo mới");
-      } else {
-        console.error("❌ Lỗi từ PayOS khi kiểm tra đơn:", err?.response?.data || err.message);
-        return res.status(400).json({
-          message: 'Không thể tạo lại thanh toán vì đơn đã tồn tại trên PayOS',
-          error: payosError || err.message
-        });
-      }
-    }
-
-    // Nếu không có link cũ, tạo mới
     const expiredAt = Math.floor(Date.now() / 1000) + 15 * 60;
 
     console.log("🚀 Gửi PayOS với dữ liệu:", {
