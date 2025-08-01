@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const Transaction = require('../schema/transactionSchema');
 const Booking = require('../schema/bookingSchema');
-const sendBookingConfirmation = require('../utils/sendEmail');
+const {sendBookingConfirmation} = require('../utils/sendEmail');
+
 router.post('/receive-webhook', express.json(), async (req, res) => {
   try {
     console.log('🔍 Headers:', req.headers);

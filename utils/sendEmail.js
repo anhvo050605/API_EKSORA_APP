@@ -1,5 +1,4 @@
-require('dotenv').config(); // Load .env nếu file này chạy độc lập
-
+require('dotenv').config();
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
@@ -10,12 +9,13 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-const sendEmail = async (to, subject, text) => {
+const sendEmail = async (to, subject, text, html = null) => {
   const mailOptions = {
     from: process.env.GMAIL_USER,
     to,
-    subject,
-    text
+    subject: subject || '(Không có tiêu đề)',
+    text: text || '',
+    ...(html && { html }) // chỉ thêm nếu có html
   };
 
   await transporter.sendMail(mailOptions);
@@ -28,28 +28,39 @@ Chào ${booking.fullName},
 
 Cảm ơn bạn đã đặt tour với chúng tôi. Đơn hàng của bạn đã được thanh toán thành công.
 
-📌 Chi tiết đơn hàng:
+Chi tiết:
 - Mã đơn hàng: ${booking.order_code}
 - Tên tour: ${booking.title}
 - Ngày đi: ${booking.travelDate}
 - Người lớn: ${booking.quantityAdult}
 - Trẻ em: ${booking.quantityChild}
-- Tổng tiền: ${booking.totalPrice} VND
+- Tổng tiền: ${booking.totalPrice.toLocaleString()} VND
 
-Chúng tôi sẽ liên hệ với bạn sớm để xác nhận thêm thông tin.
+Chúng tôi sẽ liên hệ với bạn sớm.
 
 Trân trọng,
-Hệ thống đặt tour du lịch
+Eksora Travel Team
   `;
 
-  const mailOptions = {
-    from: process.env.GMAIL_USER,
-    to,
-    subject,
-    text
-  };
+  const html = `
+    <h3>Chào ${booking.fullName},</h3>
+    <p>Cảm ơn bạn đã đặt tour với chúng tôi. Đơn hàng của bạn đã được <strong>thanh toán thành công</strong>.</p>
+    <ul>
+      <li><strong>Mã đơn hàng:</strong> ${booking.order_code}</li>
+      <li><strong>Tên tour:</strong> ${booking.title}</li>
+      <li><strong>Ngày đi:</strong> ${booking.travelDate}</li>
+      <li><strong>Người lớn:</strong> ${booking.quantityAdult}</li>
+      <li><strong>Trẻ em:</strong> ${booking.quantityChild}</li>
+      <li><strong>Tổng tiền:</strong> ${booking.totalPrice.toLocaleString()} VND</li>
+    </ul>
+    <p>Chúng tôi sẽ liên hệ lại bạn sớm nhất có thể.</p>
+    <p>Trân trọng,<br><strong>Eksora Travel</strong></p>
+  `;
 
-  await transporter.sendMail(mailOptions);
+  await sendEmail(to, subject, text, html);
 };
 
-module.exports = sendEmail,sendBookingConfirmation;
+module.exports = {
+  sendEmail,
+  sendBookingConfirmation
+};
