@@ -16,7 +16,10 @@ exports.createBooking = async (req, res) => {
       quantity_treEm = 0,
       price_nguoiLon = 0,       // ✅ NHẬN từ frontend
       price_treEm = 0,
-      optionServices = []       // ✅ Mảng option được chọn
+      optionServices = [],
+      fullName,
+      email,
+      phone      // ✅ Mảng option được chọn
     } = req.body;
 
     // const DEFAULT_ADULT_PRICE = 300000;
@@ -58,7 +61,10 @@ exports.createBooking = async (req, res) => {
       price_treEm,
       totalPrice,
       coin,
-      voucher_id
+      voucher_id,
+      fullName,
+      email,
+      phone
     });
 
     await newBooking.save();
@@ -91,7 +97,7 @@ exports.createBooking = async (req, res) => {
 exports.getBookingsByUser = async (req, res) => {
   try {
     const { userId } = req.params;
-    const bookings = await Booking.find({ user_id: userId }).populate('tour_id');
+    const bookings = await Booking.find({ user_id: userId }).populate('tour_id').sort({ created_at: -1 });
     res.status(200).json(bookings);
   } catch (error) {
     res.status(500).json({ message: 'Lỗi khi lấy danh sách booking' });
@@ -151,7 +157,7 @@ exports.getAllBookings = async (req, res) => {
     const bookings = await Booking.find()
       .populate('tour_id')
       .populate('user_id')
-      .sort({ createdAt: -1 }); // Sắp xếp mới nhất lên đầu
+      .sort({  created_at: -1  }); // Sắp xếp mới nhất lên đầu
 
     // Với mỗi booking, lấy thêm danh sách option services
     const bookingsWithOptions = await Promise.all(
