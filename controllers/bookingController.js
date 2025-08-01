@@ -3,7 +3,7 @@ const Booking = require('../schema/bookingSchema');
 const BookingOptionService = require('../schema/bookingOptionServiceSchema');
 const OptionService = require('../schema/optionServiceSchema');
 const Tour = require('../schema/tourSchema'); // ✅ Thêm import
-const { sendBookingConfirmation } = require('../utils/email');
+const { sendBookingConfirmation } = require('../utils/sendEmail'); // ✅ Thêm import
 // Tạo booking mới và lưu lựa chọn dịch vụ
 exports.createBooking = async (req, res) => {
   try {
