@@ -64,11 +64,6 @@ Eksora Travel
       <p><strong>Người lớn:</strong> ${booking.quantity_nguoiLon}</p>
       <p><strong>Trẻ em:</strong> ${booking.quantity_treEm}</p>
       <p><strong>Tổng tiền:</strong> <span style="color: green;">${booking.totalPrice.toLocaleString()} VND</span></p>
-
-      <div style="text-align: center; margin-top: 16px;">
-        <img src="${qrCodeDataURL}" alt="QR Code" style="width: 120px; height: 120px;" />
-        <p style="font-size: 12px; color: #666;">Quét mã QR để xem chi tiết đơn hàng</p>
-      </div>
     </div>
 
     <p style="margin-top: 20px;">Chúng tôi sẽ liên hệ lại với bạn sớm nhất để xác nhận thêm.</p>
