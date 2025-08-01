@@ -42,20 +42,22 @@ Eksora Travel
   `;
 
   const html = `
-  <div style="max-width: 600px; margin: auto; font-family: Arial, sans-serif; border: 1px solid #ccc; padding: 20px; border-radius: 12px; background-color: #f9f9f9; position: relative; overflow: hidden;">
+  <div style="max-width: 600px; margin: auto; font-family: Arial, sans-serif; border: 1px solid #ccc; border-radius: 12px; overflow: hidden; position: relative; background-color: #f9f9f9;">
     
-    <!-- Logo mờ ở nền -->
-    <img src="https://res.cloudinary.com/dvif6jjrt/image/upload/v1754051393/ChatGPT_Image_May_8_2025_01_51_11_PM_fbfrem.png"
-         alt="Eksora Logo" 
-         style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                opacity: 0.07; width: 80%; z-index: 0;" />
+    <!-- Logo nền mờ -->
+    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+                background-image: url('https://res.cloudinary.com/dvif6jjrt/image/upload/v1754051393/ChatGPT_Image_May_8_2025_01_51_11_PM_fbfrem.png');
+                background-repeat: no-repeat; background-position: center; background-size: 80%;
+                opacity: 0.06; z-index: 0;">
+    </div>
 
-    <div style="position: relative; z-index: 1;">
+    <!-- Nội dung -->
+    <div style="position: relative; z-index: 1; padding: 24px;">
       <h2 style="color: #2b7bff; text-align: center;">🎉 Đặt tour thành công!</h2>
       <p>Chào <strong>${booking.fullName}</strong>,</p>
       <p>Cảm ơn bạn đã đặt tour với <strong>Eksora Travel</strong>. Vé điện tử của bạn như sau:</p>
 
-      <div style="border: 1px dashed #888; padding: 16px; border-radius: 8px; background-color: #fff;">
+      <div style="border: 1px dashed #888; padding: 16px; border-radius: 8px; background-color: #fff; margin-top: 12px;">
         <h3 style="color: #333;">🎫 Vé tour: ${booking.tour_id?.name || 'Không rõ'}</h3>
         <p><strong>Mã đơn hàng:</strong> ${booking.order_code}</p>
         <p><strong>Ngày đi:</strong> ${new Date(booking.travel_date).toLocaleDateString('vi-VN')}</p>
