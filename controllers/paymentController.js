@@ -20,7 +20,7 @@ exports.createPaymentLink = async (req, res) => {
       buyerPhone,
       buyerAddress,
       description,
-      booking_id // ID của đơn đặt tour
+      booking_id
     } = req.body;
 
     // Kiểm tra thông tin bắt buộc
@@ -54,7 +54,7 @@ exports.createPaymentLink = async (req, res) => {
     // Nếu đã có orderCode, thử lấy lại link cũ từ PayOS
     try {
       const existingLink = await payos.getPaymentLink(orderCode);
-      if (existingLink && existingLink.checkoutUrl) {
+      if (existingLink?.checkoutUrl) {
         return res.status(200).json({
           url: existingLink.checkoutUrl,
           orderCode,
@@ -62,10 +62,19 @@ exports.createPaymentLink = async (req, res) => {
         });
       }
     } catch (err) {
-      console.log("⏳ Không tìm thấy link cũ. Sẽ tạo link mới...");
+      const payosError = err?.response?.data?.error;
+      if (payosError === 'ORDER_NOT_FOUND') {
+        console.log("🔁 Không tìm thấy đơn hàng cũ trên PayOS → sẽ tạo mới");
+      } else {
+        console.error("❌ Lỗi từ PayOS khi kiểm tra đơn:", err?.response?.data || err.message);
+        return res.status(400).json({
+          message: 'Không thể tạo lại thanh toán vì đơn đã tồn tại trên PayOS',
+          error: payosError || err.message
+        });
+      }
     }
 
-    // Nếu không có hoặc không tìm thấy link cũ, tạo mới
+    // Nếu không có link cũ, tạo mới
     const expiredAt = Math.floor(Date.now() / 1000) + 15 * 60;
 
     console.log("🚀 Gửi PayOS với dữ liệu:", {
@@ -101,7 +110,10 @@ exports.createPaymentLink = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Lỗi tạo link thanh toán:', error.message);
-    return res.status(500).json({ message: 'Lỗi tạo link thanh toán', error: error.message });
+    console.error('❌ Lỗi tạo link thanh toán:', error?.response?.data || error.message);
+    return res.status(500).json({
+      message: 'Lỗi tạo link thanh toán',
+      error: error?.response?.data?.error || error.message
+    });
   }
 };
