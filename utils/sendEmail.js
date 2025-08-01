@@ -30,10 +30,10 @@ Cảm ơn bạn đã đặt tour với chúng tôi. Đơn hàng của bạn đã
 
 Chi tiết:
 - Mã đơn hàng: ${booking.order_code}
-- Tên tour: ${booking.title}
-- Ngày đi: ${booking.travelDate}
-- Người lớn: ${booking.quantityAdult}
-- Trẻ em: ${booking.quantityChild}
+- Tên tour: ${booking.tour_id?.name || 'Không rõ'}
+- Ngày đi: ${booking.travel_date}
+- Người lớn: ${booking.quantity_nguoiLon}
+- Trẻ em: ${booking.quantity_treEm}
 - Tổng tiền: ${booking.totalPrice.toLocaleString()} VND
 
 Chúng tôi sẽ liên hệ với bạn sớm.
@@ -43,19 +43,19 @@ Eksora Travel Team
   `;
 
   const html = `
-    <h3>Chào ${booking.fullName},</h3>
-    <p>Cảm ơn bạn đã đặt tour với chúng tôi. Đơn hàng của bạn đã được <strong>thanh toán thành công</strong>.</p>
-    <ul>
-      <li><strong>Mã đơn hàng:</strong> ${booking.order_code}</li>
-      <li><strong>Tên tour:</strong> ${booking.title}</li>
-      <li><strong>Ngày đi:</strong> ${booking.travelDate}</li>
-      <li><strong>Người lớn:</strong> ${booking.quantityAdult}</li>
-      <li><strong>Trẻ em:</strong> ${booking.quantityChild}</li>
-      <li><strong>Tổng tiền:</strong> ${booking.totalPrice.toLocaleString()} VND</li>
-    </ul>
-    <p>Chúng tôi sẽ liên hệ lại bạn sớm nhất có thể.</p>
-    <p>Trân trọng,<br><strong>Eksora Travel</strong></p>
-  `;
+  <h3>Chào ${booking.fullName},</h3>
+  <p>Cảm ơn bạn đã đặt tour với chúng tôi. Đơn hàng của bạn đã được <strong>thanh toán thành công</strong>.</p>
+  <ul>
+    <li><strong>Mã đơn hàng:</strong> ${booking.order_code}</li>
+    <li><strong>Tên tour:</strong> ${booking.tour_id?.name || 'Không rõ'}</li>
+    <li><strong>Ngày đi:</strong> ${new Date(booking.travel_date).toLocaleDateString('vi-VN')}</li>
+    <li><strong>Người lớn:</strong> ${booking.quantity_nguoiLon}</li>
+    <li><strong>Trẻ em:</strong> ${booking.quantity_treEm}</li>
+    <li><strong>Tổng tiền:</strong> ${booking.totalPrice.toLocaleString()} VND</li>
+  </ul>
+  <p>Chúng tôi sẽ liên hệ lại bạn sớm nhất có thể.</p>
+  <p>Trân trọng,<br><strong>Eksora Travel</strong></p>
+`;
 
   await sendEmail(to, subject, text, html);
 };
