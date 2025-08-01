@@ -1,6 +1,6 @@
 require('dotenv').config();
 const nodemailer = require('nodemailer');
-const QRCode = require('qrcode');
+
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -50,10 +50,6 @@ Chi tiết:
 Trân trọng,
 Eksora Travel
   `;
-
-  // QR chứa link hoặc thông tin đơn hàng
-  const qrData = `https://eksora.vn/booking/${booking.order_code}`;
-  const qrCodeDataURL = await QRCode.toDataURL(qrData);
 
   const html = `
   <div style="max-width: 600px; margin: auto; font-family: Arial, sans-serif; border: 1px solid #ccc; border-radius: 12px; overflow: hidden; background-color: #f9f9f9; padding: 24px;">
