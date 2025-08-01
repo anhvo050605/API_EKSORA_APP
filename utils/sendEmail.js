@@ -22,7 +22,8 @@ const sendEmail = async (to, subject, text, html = null) => {
 };
 
 const sendBookingConfirmation = async (to, booking) => {
-  const subject = '✅ Đơn hàng của bạn đã được xác nhận';
+  const subject = '🎫 Vé điện tử - Đơn hàng Eksora Travel đã xác nhận';
+
   const text = `
 Chào ${booking.fullName},
 
@@ -36,25 +37,29 @@ Chi tiết:
 - Trẻ em: ${booking.quantity_treEm}
 - Tổng tiền: ${booking.totalPrice.toLocaleString()} VND
 
-Chúng tôi sẽ liên hệ với bạn sớm.
-
 Trân trọng,
-Eksora Travel Team
+Eksora Travel
   `;
 
   const html = `
-  <h3>Chào ${booking.fullName},</h3>
-  <p>Cảm ơn bạn đã đặt tour với chúng tôi. Đơn hàng của bạn đã được <strong>thanh toán thành công</strong>.</p>
-  <ul>
-    <li><strong>Mã đơn hàng:</strong> ${booking.order_code}</li>
-    <li><strong>Tên tour:</strong> ${booking.tour_id?.name || 'Không rõ'}</li>
-    <li><strong>Ngày đi:</strong> ${new Date(booking.travel_date).toLocaleDateString('vi-VN')}</li>
-    <li><strong>Người lớn:</strong> ${booking.quantity_nguoiLon}</li>
-    <li><strong>Trẻ em:</strong> ${booking.quantity_treEm}</li>
-    <li><strong>Tổng tiền:</strong> ${booking.totalPrice.toLocaleString()} VND</li>
-  </ul>
-  <p>Chúng tôi sẽ liên hệ lại bạn sớm nhất có thể.</p>
-  <p>Trân trọng,<br><strong>Eksora Travel</strong></p>
+  <div style="max-width: 600px; margin: auto; font-family: Arial, sans-serif; border: 1px solid #ccc; padding: 20px; border-radius: 12px; background-color: #f9f9f9;">
+    <h2 style="color: #2b7bff; text-align: center;">🎉 Đặt tour thành công!</h2>
+    <p>Chào <strong>${booking.fullName}</strong>,</p>
+    <p>Cảm ơn bạn đã đặt tour với <strong>Eksora Travel</strong>. Vé điện tử của bạn như sau:</p>
+
+    <div style="border: 1px dashed #888; padding: 16px; border-radius: 8px; background-color: #fff;">
+      <h3 style="color: #333;">🎫 Vé tour: ${booking.tour_id?.name || 'Không rõ'}</h3>
+      <p><strong>Mã đơn hàng:</strong> ${booking.order_code}</p>
+      <p><strong>Ngày đi:</strong> ${new Date(booking.travel_date).toLocaleDateString('vi-VN')}</p>
+      <p><strong>Người lớn:</strong> ${booking.quantity_nguoiLon}</p>
+      <p><strong>Trẻ em:</strong> ${booking.quantity_treEm}</p>
+      <p><strong>Tổng tiền:</strong> <span style="color: green;">${booking.totalPrice.toLocaleString()} VND</span></p>
+    </div>
+
+    <p style="margin-top: 20px;">Chúng tôi sẽ liên hệ lại với bạn sớm nhất để xác nhận thêm.</p>
+    <p style="text-align: center; color: #999;">Cảm ơn bạn đã tin tưởng <strong>Eksora Travel</strong>!</p>
+    <p style="text-align: right;">Trân trọng,<br/><strong>Eksora Travel Team</strong></p>
+  </div>
 `;
 
   await sendEmail(to, subject, text, html);
