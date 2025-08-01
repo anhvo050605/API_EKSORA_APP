@@ -70,7 +70,7 @@ exports.createBooking = async (req, res) => {
     
     await newBooking.save();
     const populatedBooking = await Booking.findById(newBooking._id).populate('tour_id');
-    await sendBookingConfirmation(email, populatedBooking);
+    // await sendBookingConfirmation(email, populatedBooking);
     // ✅ Lưu option service được chọn (nếu có)
     if (selectedOptionIds.length > 0) {
       const bookingOptions = selectedOptionIds.map(optId => ({

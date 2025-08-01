@@ -20,7 +20,7 @@ router.post('/receive-webhook', express.json(), async (req, res) => {
     //   return res.status(200).send("Đã nhận test webhook (không có orderCode)");
     // }
 
-    const booking = await Booking.findOne({ order_code: orderCode });
+    const booking = await Booking.findOne({ order_code: orderCode }).populate('tour_id');
 
     if (!booking) {
       console.error("❌ Không tìm thấy booking với orderCode:", orderCode);
