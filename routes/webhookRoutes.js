@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Transaction = require('../schema/transactionSchema');
 const Booking = require('../schema/bookingSchema');
-const {sendBookingConfirmation} = require('../utils/sendEmail');
+const {sendBookingConfirmation,sendBookingFailed } = require('../utils/sendEmail');
 
 router.post('/receive-webhook', express.json(), async (req, res) => {
   try {
@@ -48,7 +48,15 @@ router.post('/receive-webhook', express.json(), async (req, res) => {
       } catch (emailErr) {
         console.error("❌ Lỗi gửi email:", emailErr.message);
       }
+    } else if (payment_status === 'failed' && booking.email) {
+      try {
+        await sendBookingFailed(booking.email, booking);
+        console.log("📧 Đã gửi email THẤT BẠI tới:", booking.email);
+      } catch (emailErr) {
+        console.error("❌ Lỗi gửi email thất bại:", emailErr.message);
+      }
     }
+
     res.status(200).send('OK');
   } catch (err) {
     console.error("❌ Lỗi webhook:", err);

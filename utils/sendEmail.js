@@ -75,7 +75,37 @@ Eksora Travel
   await sendEmail(to, subject, text, html);
 };
 
+const sendBookingFailed = async (to, booking) => {
+  const subject = '❌ Thanh toán thất bại - Đơn hàng Eksora Travel';
+
+  const text = `
+Chào ${booking.fullName},
+
+Thanh toán cho đơn hàng ${booking.order_code} đã thất bại.
+
+Nếu bạn cần hỗ trợ hoặc muốn thử lại thanh toán, vui lòng liên hệ với chúng tôi.
+
+Trân trọng,
+Eksora Travel
+  `;
+
+  const html = `
+  <div style="max-width: 600px; margin: auto; font-family: Arial, sans-serif; border: 1px solid #f00; border-radius: 12px; background-color: #fff1f1; padding: 24px;">
+    <h2 style="color: #d8000c; text-align: center;">❌ Thanh toán thất bại</h2>
+    <p>Chào <strong>${booking.fullName}</strong>,</p>
+    <p>Đơn hàng <strong>${booking.order_code}</strong> đã không được thanh toán thành công.</p>
+    <p>Hãy kiểm tra lại thông tin thanh toán hoặc thử lại sau.</p>
+    <p style="margin-top: 20px;">Nếu cần trợ giúp, hãy liên hệ với chúng tôi qua hotline hoặc email hỗ trợ.</p>
+    <p style="text-align: center; color: #555;">Eksora Travel luôn sẵn sàng hỗ trợ bạn!</p>
+    <p style="text-align: right;">Trân trọng,<br/><strong>Eksora Travel Team</strong></p>
+  </div>
+  `;
+
+  await sendEmail(to, subject, text, html);
+};
+
 module.exports = {
   sendEmail,
-  sendBookingConfirmation
+  sendBookingConfirmation,
+  sendBookingFailed
 };
