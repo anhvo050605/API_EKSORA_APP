@@ -12,7 +12,7 @@ const getAllTours = async (req, res) => {
     const { cateID, status } = req.query;
 
     const query = {
-      price: { $gt: 0 }, 
+      price: { $gt: 0 }, // Chỉ lấy tour có giá > 0
     };
     if (cateID) query.cateID = new mongoose.Types.ObjectId(cateID);
     if (status) query.status = status;
@@ -21,12 +21,35 @@ const getAllTours = async (req, res) => {
       .populate('cateID')
       .populate('supplier_id');
 
-    res.status(200).json(tours);
+    // Với mỗi tour, lấy danh sách service và option tương ứng
+    const toursWithServices = await Promise.all(
+      tours.map(async (tour) => {
+        const services = await Service.find({ tour_id: tour._id });
+
+        const servicesWithOptions = await Promise.all(
+          services.map(async (service) => {
+            const options = await OptionService.find({ service_id: service._id });
+            return {
+              ...service.toObject(),
+              options
+            };
+          })
+        );
+
+        return {
+          ...tour.toObject(),
+          services: servicesWithOptions
+        };
+      })
+    );
+
+    res.status(200).json(toursWithServices);
   } catch (error) {
     console.error('Lỗi khi lấy tour:', error);
     res.status(500).json({ message: 'Lỗi máy chủ', error });
   }
 };
+
 const getAllToursIncludeFree = async (req, res) => {
   try {
     const { cateID, status } = req.query;
