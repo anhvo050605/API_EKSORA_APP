@@ -38,7 +38,7 @@ const itineraryRoute = require('./routes/itineraryRoute');
 const adminRoutes = require('./routes/adminRoutes');
 const facebookRoutes = require('./routes/facebookRoutes');
 const shareRoutes = require('./routes/shareRoutes');
-
+const googleRoutes = require('./routes/googleRoutes');
 
 
 // const payos = new PayOS(
@@ -163,7 +163,7 @@ app.use('/api/admin', adminRoutes);
 
 app.use('/api/share', shareRoutes);
 app.use('/', shareRoutes); 
-
+app.use('/api', googleRoutes); // Thêm dòng này để sử dụng googleRoutes
 
 app.use('/api', facebookRoutes);
 
