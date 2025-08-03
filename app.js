@@ -1,6 +1,5 @@
 var createError = require('http-errors');
 var express = require('express');
-const { debugMiddleware, errorHandler } = require('./middleware/debugMiddleware');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
@@ -39,7 +38,6 @@ const itineraryRoute = require('./routes/itineraryRoute');
 const adminRoutes = require('./routes/adminRoutes');
 const facebookRoutes = require('./routes/facebookRoutes');
 const shareRoutes = require('./routes/shareRoutes');
-const googleRoutes = require('./routes/googleRoutes');
 
 
 // const payos = new PayOS(
@@ -57,11 +55,6 @@ const googleRoutes = require('./routes/googleRoutes');
 var app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
-
-// Debug middleware (chỉ trong development)
-if (process.env.NODE_ENV === 'development') {
-  app.use(debugMiddleware);
-}
 
 
 app.get('/', (req, res) => {
@@ -170,9 +163,6 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/share', shareRoutes);
 app.use('/', shareRoutes); 
 
-// ✅ DI CHUYỂN GOOGLE ROUTES LÊN TRƯỚC FACEBOOK ROUTES
-app.use('/api', googleRoutes);
-
 app.use('/api', facebookRoutes);
 
 app.get("/health", (req, res) => {
@@ -215,7 +205,7 @@ app.get('/redirect/:id', (req, res) => {
   `);
 });
 
-app.listen(3001, '0.0.0.0', () => {
+app.listen(3000, '0.0.0.0', () => {
   console.log('Server running on all interfaces');
 });
 //===================================================================================================
@@ -223,14 +213,19 @@ app.listen(3001, '0.0.0.0', () => {
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  res.status(404).json({
-    success: false,
-    message: `Route ${req.originalUrl} not found`
-  });
+  next(createError(404));
 });
 
-// Error handling middleware (phải đặt cuối cùng)
-app.use(errorHandler);
+// error handler
+app.use(function(err, req, res, next) {
+  // set locals, only providing error in development
+  res.locals.message = err.message;
+  res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+  // render the error page
+  res.status(err.status || 500);
+  res.render('error');
+});
 
 module.exports = app;
 //mongodb://127.0.0.1:27017
