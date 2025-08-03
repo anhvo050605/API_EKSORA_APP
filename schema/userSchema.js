@@ -24,7 +24,6 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: function() {
-      // Không require password cho Google/Facebook login
       return this.loginType === 'normal' || !this.loginType;
     },
     minlength: [6, 'Password must be at least 6 characters'],
@@ -33,8 +32,6 @@ const userSchema = new mongoose.Schema({
   phone: {
     type: String,
     required: function() {
-      // Chỉ require phone cho normal login, không require cho Facebook/Google login
-      // Thêm kiểm tra this.isNew để tránh lỗi khi tạo mới user chưa set loginType
       if (this.isNew && (this.loginType === 'facebook' || this.loginType === 'google')) {
         return false;
       }
@@ -43,7 +40,6 @@ const userSchema = new mongoose.Schema({
     default: '',
     validate: {
       validator: function(v) {
-        // Nếu có phone thì phải đúng format, nếu không có thì ok
         if (!v || v === '') return true;
         return /^[0-9]{10,15}$/.test(v);
       },
@@ -62,11 +58,10 @@ const userSchema = new mongoose.Schema({
   },
   facebookUid: {
     type: String,
-    sparse: true, // Allows multiple null/undefined values
-    unique: true, // But unique when it exists
+    sparse: true,
+    unique: true,
     validate: {
       validator: function(v) {
-        // Nếu loginType là facebook thì phải có facebookUid
         if (this.loginType === 'facebook') {
           return v && v.length > 0;
         }
@@ -111,7 +106,7 @@ userSchema.pre('save', function(next) {
   next();
 });
 
-// Middleware to update lastLogin for Facebook login
+// Middleware to update lastLogin for social login
 userSchema.pre('save', function(next) {
   if (this.loginType === 'facebook' || this.loginType === 'google') {
     this.lastLogin = new Date();
@@ -119,10 +114,7 @@ userSchema.pre('save', function(next) {
   next();
 });
 
-// Index for better query performance
-userSchema.index({ email: 1 });
-userSchema.index({ facebookUid: 1 });
-userSchema.index({ googleUid: 1 });
+// Only KEEP indexes that are NOT duplicate with unique constraints
 userSchema.index({ loginType: 1 });
 userSchema.index({ createdAt: -1 });
 
