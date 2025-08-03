@@ -26,7 +26,7 @@ const createReview = async (req, res) => {
     const savedReview = await newReview.save();
 
     // 👉 Sau khi lưu, tính lại rating trung bình của tour
-    const allReviews = await Review.find({ tour: tourId, status: 'approved' }); // chỉ tính review đã duyệt nếu cần
+    const allReviews = await Review.find({ tour: tourId });
     const totalRating = allReviews.reduce((sum, r) => sum + (r.rating || 0), 0);
     const averageRating = allReviews.length > 0 ? totalRating / allReviews.length : 0;
 
