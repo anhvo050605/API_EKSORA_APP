@@ -1,19 +1,21 @@
 const Review = require('../schema/reviewSchema');
-
+const Tour = require('../schema/tourSchema');
 // Tạo review mới
 const createReview = async (req, res) => {
   try {
-    const { promotion_id,rating, comment, status, images  } = req.body;
+    const { promotion_id, rating, comment, status, images } = req.body;
     const userId = req.body.user?.id || req.body.userId;
     const tourId = req.body.tour?.id || req.body.tourId;
+
     // Validate dữ liệu tối thiểu
     if (!userId || !tourId || !rating) {
       return res.status(400).json({ message: 'userId, tourId và rating là bắt buộc.' });
     }
 
+    // Tạo review mới
     const newReview = new Review({
       promotion_id,
-      user: userId,    // ✅ Chỉ truyền ObjectId trực tiếp
+      user: userId,
       tour: tourId,
       rating,
       comment,
@@ -22,6 +24,17 @@ const createReview = async (req, res) => {
     });
 
     const savedReview = await newReview.save();
+
+    // 👉 Sau khi lưu, tính lại rating trung bình của tour
+    const allReviews = await Review.find({ tour: tourId, status: 'approved' }); // chỉ tính review đã duyệt nếu cần
+    const totalRating = allReviews.reduce((sum, r) => sum + (r.rating || 0), 0);
+    const averageRating = allReviews.length > 0 ? totalRating / allReviews.length : 0;
+
+    // 👉 Cập nhật trường `rating` trong bảng Tour
+    await Tour.findByIdAndUpdate(tourId, {
+      rating: Number(averageRating.toFixed(1))
+    });
+
     res.status(201).json(savedReview);
   } catch (error) {
     res.status(500).json({ message: 'Lỗi khi tạo review', error: error.message });
@@ -39,7 +52,7 @@ const getReviews = async (req, res) => {
     const reviews = await Review.find(filter)
       .populate({
         path: 'user',
-        select: 'first_name last_name'  // 👈 lấy 2 trường tên
+        select: 'first_name last_name'
       })
       .populate({
         path: 'tour',
@@ -49,14 +62,22 @@ const getReviews = async (req, res) => {
     // Gộp tên người dùng trong kết quả trả về
     const reviewsWithFullName = reviews.map(review => {
       const user = review.user;
-      const fullName = user ? `${user.first_name || ''}${user.last_name || ''}`.trim() : '';
+      const fullName = user ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : '';
       return {
         ...review.toObject(),
-        user_name: fullName  // 👈 thêm trường user_name để dễ hiển thị ở frontend
+        user_name: fullName
       };
     });
 
-    res.status(200).json(reviewsWithFullName);
+    // ✅ Tính trung bình rating
+    const totalRating = reviews.reduce((sum, review) => sum + (review.rating || 0), 0);
+    const averageRating = reviews.length > 0 ? totalRating / reviews.length : 0;
+
+    res.status(200).json({
+      averageRating: Number(averageRating.toFixed(1)), // Làm tròn 1 chữ số thập phân
+      totalReviews: reviews.length,
+      reviews: reviewsWithFullName
+    });
   } catch (error) {
     res.status(500).json({ message: 'Lỗi khi lấy review', error: error.message });
   }
