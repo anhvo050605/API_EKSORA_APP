@@ -1,62 +1,180 @@
-const User = require('../schema/userSchema');
+const User = require('./userSchema');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 exports.facebookLogin = async (req, res) => {
   try {
     console.log("=== FACEBOOK LOGIN REQUEST ===");
-    console.log("Received data:", JSON.stringify(req.body, null, 2));
+    console.log("Headers:", req.headers);
+    console.log("Body:", JSON.stringify(req.body, null, 2));
 
     const { facebookUid, full_name, email, avatarUrl } = req.body;
 
+    // Detailed validation
     if (!facebookUid) {
+      console.log("ERROR: Missing facebookUid");
       return res.status(400).json({
         success: false,
         message: "Facebook UID is required",
       });
     }
 
-    // Check if user already exists with this email
-    let existingUser = await User.findOne({ email });
-
-    if (!existingUser) {
-      // Tạo mới user nếu chưa tồn tại
-      const nameParts = full_name ? full_name.split(' ') : [];
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || '';
-
-      existingUser = await User.create({
-        email,
-        first_name: firstName,
-        last_name: lastName,
-        avatar: avatarUrl,
-        password: facebookUid, // giả định, bạn nên mã hóa hoặc xử lý riêng
+    if (!email) {
+      console.log("ERROR: Missing email");
+      return res.status(400).json({
+        success: false,
+        message: "Email is required for Facebook login",
       });
     }
 
-    // Tạo token giả lập (có thể thay bằng JWT thực tế)
-    const mockToken = `fb_token_${facebookUid}_${Date.now()}`;
+    console.log("Validation passed, checking existing user...");
+
+    // Check if user already exists with this email
+    let existingUser = await User.findOne({ email }).exec();
+    console.log("Existing user found:", !!existingUser);
+
+    if (!existingUser) {
+      console.log("Creating new user...");
+      
+      // Prepare user data
+      const nameParts = full_name ? full_name.split(' ') : [];
+      const firstName = nameParts[0] || 'Facebook';
+      const lastName = nameParts.slice(1).join(' ') || 'User';
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(facebookUid, 10);
+
+      const userData = {
+        email,
+        first_name: firstName,
+        last_name: lastName,
+        avatar: avatarUrl || '',
+        password: hashedPassword,
+        // phone: undefined, // Không gán phone để tránh lỗi validation
+        loginType: 'facebook',
+        facebookUid: facebookUid,
+        isActive: true
+      };
+
+      console.log("User data to create:", userData);
+
+      // Create user with explicit error handling
+      try {
+        console.log("Creating user with data:", userData);
+        existingUser = await User.create(userData);
+        console.log("User created successfully:", existingUser._id);
+      } catch (createError) {
+        console.error("User creation error:", createError);
+        
+        if (createError.name === 'ValidationError') {
+          console.error("Validation errors detail:", createError.errors);
+          const validationErrors = Object.values(createError.errors).map(err => ({
+            field: err.path,
+            message: err.message,
+            value: err.value
+          }));
+          
+          return res.status(400).json({
+            success: false,
+            message: "User validation failed",
+            errors: validationErrors,
+          });
+        }
+        
+        throw createError;
+      }
+    } else {
+      console.log("Updating existing user...");
+      
+      // Update existing user info
+      const nameParts = full_name ? full_name.split(' ') : [];
+      if (nameParts.length > 0) {
+        existingUser.first_name = nameParts[0];
+        existingUser.last_name = nameParts.slice(1).join(' ') || existingUser.last_name;
+      }
+      
+      existingUser.avatar = avatarUrl || existingUser.avatar;
+      existingUser.facebookUid = facebookUid;
+      existingUser.loginType = 'facebook';
+      
+      try {
+        await existingUser.save();
+        console.log("User updated successfully");
+      } catch (updateError) {
+        console.error("User update error:", updateError);
+        throw updateError;
+      }
+    }
+
+    console.log("Generating JWT token...");
+
+    // Generate JWT token
+    const tokenPayload = {
+      userId: existingUser._id,
+      email: existingUser.email,
+      loginType: 'facebook'
+    };
+
+    const token = jwt.sign(
+      tokenPayload,
+      process.env.JWT_SECRET || 'fallback-secret-key',
+      { expiresIn: '7d' }
+    );
 
     const responseData = {
       success: true,
       message: "Facebook login successful",
-      token: mockToken,
+      token: token,
       user: {
         id: existingUser._id,
-        name: `${existingUser.first_name} ${existingUser.last_name}`,
+        name: `${existingUser.first_name} ${existingUser.last_name}`.trim(),
         email: existingUser.email,
-        avatar: existingUser.avatar,
+        avatar: existingUser.avatar || '',
         loginType: "facebook",
+        phone: existingUser.phone || '',
       },
     };
 
-    console.log("Sending response:", JSON.stringify(responseData, null, 2));
+    console.log("SUCCESS: Sending response");
     res.status(200).json(responseData);
 
   } catch (error) {
-    console.error("Facebook login error:", error);
+    console.error("=== FACEBOOK LOGIN ERROR ===");
+    console.error("Error name:", error.name);
+    console.error("Error message:", error.message);
+    console.error("Error stack:", error.stack);
+    
+    // Handle different error types
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => ({
+        field: err.path,
+        message: err.message,
+        value: err.value
+      }));
+      
+      console.error("Validation errors:", validationErrors);
+      
+      return res.status(400).json({
+        success: false,
+        message: "User validation failed",
+        errors: validationErrors,
+      });
+    }
+    
+    if (error.name === 'MongoError' || error.name === 'MongoServerError') {
+      console.error("Database error:", error.message);
+      return res.status(500).json({
+        success: false,
+        message: "Database error occurred",
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Internal error'
+      });
+    }
+
+    // Generic error response
     res.status(500).json({
       success: false,
       message: "Internal server error",
-      error: error.message,
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
     });
   }
 };
