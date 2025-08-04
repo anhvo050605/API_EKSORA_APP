@@ -119,12 +119,11 @@ userSchema.pre('save', function(next) {
 });
 
 // Index for better query performance
-userSchema.index({ email: 1 });
-userSchema.index({ phone: 1 });
-userSchema.index({ facebookUid: 1 });
-userSchema.index({ googleUid: 1 });
+// Chỉ tạo index cho các field không có unique constraint
 userSchema.index({ loginType: 1 });
 userSchema.index({ created_at: -1 });
+userSchema.index({ lastLogin: -1 });
+userSchema.index({ is_active: 1 });
 
 // Virtual for full name
 userSchema.virtual('fullName').get(function() {
