@@ -1,4 +1,3 @@
-var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
@@ -36,7 +35,6 @@ const locationRoutes = require('./routes/locationRoutes');
 const suggestionRoute = require('./routes/suggestionRoute');
 const itineraryRoute = require('./routes/itineraryRoute');
 const adminRoutes = require('./routes/adminRoutes');
-
 const shareRoutes = require('./routes/shareRoutes');
 
 
@@ -210,7 +208,7 @@ app.get('/redirect/:id', (req, res) => {
   `);
 });
 
-app.listen(3001, '0.0.0.0', () => {
+app.listen(3000, '0.0.0.0', () => {
   console.log('Server running on all interfaces');
 });
 
