@@ -37,7 +37,6 @@ const locationRoutes = require('./routes/locationRoutes');
 const suggestionRoute = require('./routes/suggestionRoute');
 const itineraryRoute = require('./routes/itineraryRoute');
 const adminRoutes = require('./routes/adminRoutes');
-
 const shareRoutes = require('./routes/shareRoutes');
 
 
@@ -171,9 +170,7 @@ app.use('/api/share', shareRoutes);
 app.use('/', shareRoutes); 
 
 // ✅ DI CHUYỂN GOOGLE ROUTES LÊN TRƯỚC FACEBOOK ROUTES
-app.use('/api', googleRoutes);
 
-app.use('/api', facebookRoutes);
 
 app.get("/health", (req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
