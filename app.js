@@ -37,9 +37,9 @@ const locationRoutes = require('./routes/locationRoutes');
 const suggestionRoute = require('./routes/suggestionRoute');
 const itineraryRoute = require('./routes/itineraryRoute');
 const adminRoutes = require('./routes/adminRoutes');
-const facebookRoutes = require('./routes/facebookRoutes');
+
 const shareRoutes = require('./routes/shareRoutes');
-const googleRoutes = require('./routes/googleRoutes');
+
 
 
 // const payos = new PayOS(
