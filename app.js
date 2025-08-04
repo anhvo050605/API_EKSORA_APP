@@ -12,7 +12,7 @@ console.log("CHECKSUM_KEY:", process.env.PAYOS_CHECKSUM_KEY);
 const cors = require('cors'); 
 // const PayOS = require('@payos/node');
 const mongoose = require('mongoose');
-require("./userSchema");
+require("./schema/userSchema");
 
 const authRoutes = require('./routes/authRoutes'); 
 const userRoutes = require('./routes/userRoutes');

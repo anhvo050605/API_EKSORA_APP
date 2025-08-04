@@ -1,4 +1,4 @@
-const User = require('./userSchema');
+const User = require('../schema/userSchema');
 const { verifyGoogleToken } = require('../services/googleAuthService');
 const jwt = require('jsonwebtoken');
 
