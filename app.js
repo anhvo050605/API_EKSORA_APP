@@ -218,16 +218,5 @@ app.listen(3001, '0.0.0.0', () => {
 //===================================================================================================
 
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  res.status(404).json({
-    success: false,
-    message: `Route ${req.originalUrl} not found`
-  });
-});
-
-// Error handling middleware (phải đặt cuối cùng)
-
-
 module.exports = app;
 //mongodb://127.0.0.1:27017
