@@ -227,7 +227,7 @@ app.use(function(req, res, next) {
 });
 
 // Error handling middleware (phải đặt cuối cùng)
-app.use(errorHandler);
+
 
 module.exports = app;
 //mongodb://127.0.0.1:27017
