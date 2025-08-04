@@ -1,7 +1,7 @@
 const User = require('../schema/userSchema');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const sendEmail = require('../utils/sendEmail');
+const { sendEmail } = require('../utils/sendEmail');
 const SECRET_KEY = 'EKSORA';
 
 // Tạo OTP ngẫu nhiên
