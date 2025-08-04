@@ -1,4 +1,6 @@
+var createError = require('http-errors');
 var express = require('express');
+const { debugMiddleware, errorHandler } = require('./middleware/debugMiddleware');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
@@ -10,7 +12,7 @@ console.log("CHECKSUM_KEY:", process.env.PAYOS_CHECKSUM_KEY);
 const cors = require('cors'); 
 // const PayOS = require('@payos/node');
 const mongoose = require('mongoose');
-require("./schema/userSchema");
+require("./schemas/userSchema");
 
 const authRoutes = require('./routes/authRoutes'); 
 const userRoutes = require('./routes/userRoutes');
@@ -35,8 +37,9 @@ const locationRoutes = require('./routes/locationRoutes');
 const suggestionRoute = require('./routes/suggestionRoute');
 const itineraryRoute = require('./routes/itineraryRoute');
 const adminRoutes = require('./routes/adminRoutes');
+const facebookRoutes = require('./routes/facebookRoutes');
 const shareRoutes = require('./routes/shareRoutes');
-
+const googleRoutes = require('./routes/googleRoutes');
 
 
 // const payos = new PayOS(
@@ -167,6 +170,10 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/share', shareRoutes);
 app.use('/', shareRoutes); 
 
+// ✅ DI CHUYỂN GOOGLE ROUTES LÊN TRƯỚC FACEBOOK ROUTES
+app.use('/api', googleRoutes);
+
+app.use('/api', facebookRoutes);
 
 app.get("/health", (req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
@@ -211,7 +218,19 @@ app.get('/redirect/:id', (req, res) => {
 app.listen(3000, '0.0.0.0', () => {
   console.log('Server running on all interfaces');
 });
+//===================================================================================================
 
+
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+  res.status(404).json({
+    success: false,
+    message: `Route ${req.originalUrl} not found`
+  });
+});
+
+// Error handling middleware (phải đặt cuối cùng)
+app.use(errorHandler);
 
 module.exports = app;
 //mongodb://127.0.0.1:27017
