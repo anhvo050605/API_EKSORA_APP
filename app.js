@@ -1,6 +1,5 @@
 var createError = require('http-errors');
 var express = require('express');
-
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
@@ -37,6 +36,7 @@ const locationRoutes = require('./routes/locationRoutes');
 const suggestionRoute = require('./routes/suggestionRoute');
 const itineraryRoute = require('./routes/itineraryRoute');
 const adminRoutes = require('./routes/adminRoutes');
+
 const shareRoutes = require('./routes/shareRoutes');
 
 
@@ -169,8 +169,6 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/share', shareRoutes);
 app.use('/', shareRoutes); 
 
-// ✅ DI CHUYỂN GOOGLE ROUTES LÊN TRƯỚC FACEBOOK ROUTES
-
 
 app.get("/health", (req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
@@ -215,7 +213,6 @@ app.get('/redirect/:id', (req, res) => {
 app.listen(3001, '0.0.0.0', () => {
   console.log('Server running on all interfaces');
 });
-//===================================================================================================
 
 
 module.exports = app;
