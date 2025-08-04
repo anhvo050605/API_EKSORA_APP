@@ -1,5 +1,6 @@
 var createError = require('http-errors');
 var express = require('express');
+const { debugMiddleware, errorHandler } = require('./middleware/debugMiddleware');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
@@ -11,7 +12,7 @@ console.log("CHECKSUM_KEY:", process.env.PAYOS_CHECKSUM_KEY);
 const cors = require('cors'); 
 // const PayOS = require('@payos/node');
 const mongoose = require('mongoose');
-require("./schema/userSchema");
+require("./userSchema");
 
 const authRoutes = require('./routes/authRoutes'); 
 const userRoutes = require('./routes/userRoutes');
@@ -36,8 +37,9 @@ const locationRoutes = require('./routes/locationRoutes');
 const suggestionRoute = require('./routes/suggestionRoute');
 const itineraryRoute = require('./routes/itineraryRoute');
 const adminRoutes = require('./routes/adminRoutes');
-
+const facebookRoutes = require('./routes/facebookRoutes');
 const shareRoutes = require('./routes/shareRoutes');
+const googleRoutes = require('./routes/googleRoutes');
 
 
 // const payos = new PayOS(
@@ -55,6 +57,11 @@ const shareRoutes = require('./routes/shareRoutes');
 var app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Debug middleware (chỉ trong development)
+if (process.env.NODE_ENV === 'development') {
+  app.use(debugMiddleware);
+}
 
 
 app.get('/', (req, res) => {
@@ -163,7 +170,10 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/share', shareRoutes);
 app.use('/', shareRoutes); 
 
+// ✅ DI CHUYỂN GOOGLE ROUTES LÊN TRƯỚC FACEBOOK ROUTES
+app.use('/api', googleRoutes);
 
+app.use('/api', facebookRoutes);
 
 app.get("/health", (req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
@@ -205,7 +215,7 @@ app.get('/redirect/:id', (req, res) => {
   `);
 });
 
-app.listen(3000, '0.0.0.0', () => {
+app.listen(3001, '0.0.0.0', () => {
   console.log('Server running on all interfaces');
 });
 //===================================================================================================
@@ -213,19 +223,14 @@ app.listen(3000, '0.0.0.0', () => {
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  next(createError(404));
+  res.status(404).json({
+    success: false,
+    message: `Route ${req.originalUrl} not found`
+  });
 });
 
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
-});
+// Error handling middleware (phải đặt cuối cùng)
+app.use(errorHandler);
 
 module.exports = app;
 //mongodb://127.0.0.1:27017
