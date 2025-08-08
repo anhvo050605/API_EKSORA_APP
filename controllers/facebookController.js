@@ -14,7 +14,6 @@ exports.facebookLogin = async (req, res) => {
     if (!facebookUid) {
       console.log("ERROR: Missing facebookUid");
       return res.status(400).json({
-        success: false,
         message: "Facebook UID is required",
       });
     }
@@ -22,7 +21,6 @@ exports.facebookLogin = async (req, res) => {
     if (!email) {
       console.log("ERROR: Missing email");
       return res.status(400).json({
-        success: false,
         message: "Email is required for Facebook login",
       });
     }
@@ -50,7 +48,6 @@ exports.facebookLogin = async (req, res) => {
         last_name: lastName,
         avatar: avatarUrl || '',
         password: hashedPassword,
-        // phone: undefined, // Không gán phone để tránh lỗi validation
         loginType: 'facebook',
         facebookUid: facebookUid,
         isActive: true
@@ -58,45 +55,40 @@ exports.facebookLogin = async (req, res) => {
 
       console.log("User data to create:", userData);
 
-      // Create user with explicit error handling
       try {
-        console.log("Creating user with data:", userData);
         existingUser = await User.create(userData);
         console.log("User created successfully:", existingUser._id);
       } catch (createError) {
         console.error("User creation error:", createError);
-        
+
         if (createError.name === 'ValidationError') {
-          console.error("Validation errors detail:", createError.errors);
           const validationErrors = Object.values(createError.errors).map(err => ({
             field: err.path,
             message: err.message,
             value: err.value
           }));
-          
+
           return res.status(400).json({
-            success: false,
             message: "User validation failed",
             errors: validationErrors,
           });
         }
-        
+
         throw createError;
       }
     } else {
       console.log("Updating existing user...");
       
-      // Update existing user info
       const nameParts = full_name ? full_name.split(' ') : [];
       if (nameParts.length > 0) {
         existingUser.first_name = nameParts[0];
         existingUser.last_name = nameParts.slice(1).join(' ') || existingUser.last_name;
       }
-      
+
       existingUser.avatar = avatarUrl || existingUser.avatar;
       existingUser.facebookUid = facebookUid;
       existingUser.loginType = 'facebook';
-      
+
       try {
         await existingUser.save();
         console.log("User updated successfully");
@@ -112,7 +104,7 @@ exports.facebookLogin = async (req, res) => {
     const tokenPayload = {
       userId: existingUser._id,
       email: existingUser.email,
-      loginType: 'facebook'
+      role: existingUser.role || 'user',
     };
 
     const token = jwt.sign(
@@ -121,58 +113,47 @@ exports.facebookLogin = async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    const responseData = {
-      success: true,
-      message: "Facebook login successful",
-      token: token,
+    // Final response format
+    return res.status(200).json({
+      message: "Đăng nhập thành công",
+      token,
+      userId: existingUser._id.toString(),
       user: {
-        id: existingUser._id,
-        name: `${existingUser.first_name} ${existingUser.last_name}`.trim(),
+        firstName: existingUser.first_name,
+        lastName: existingUser.last_name,
         email: existingUser.email,
-        avatar: existingUser.avatar || '',
-        loginType: "facebook",
         phone: existingUser.phone || '',
-      },
-    };
-
-    console.log("SUCCESS: Sending response");
-    res.status(200).json(responseData);
+        address: existingUser.address || ''
+      }
+    });
 
   } catch (error) {
     console.error("=== FACEBOOK LOGIN ERROR ===");
     console.error("Error name:", error.name);
     console.error("Error message:", error.message);
     console.error("Error stack:", error.stack);
-    
-    // Handle different error types
+
     if (error.name === 'ValidationError') {
       const validationErrors = Object.values(error.errors).map(err => ({
         field: err.path,
         message: err.message,
         value: err.value
       }));
-      
-      console.error("Validation errors:", validationErrors);
-      
+
       return res.status(400).json({
-        success: false,
         message: "User validation failed",
         errors: validationErrors,
       });
     }
-    
+
     if (error.name === 'MongoError' || error.name === 'MongoServerError') {
-      console.error("Database error:", error.message);
       return res.status(500).json({
-        success: false,
         message: "Database error occurred",
         error: process.env.NODE_ENV === 'development' ? error.message : 'Internal error'
       });
     }
 
-    // Generic error response
     res.status(500).json({
-      success: false,
       message: "Internal server error",
       error: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
     });
