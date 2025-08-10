@@ -197,12 +197,12 @@ exports.cancelBooking = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const booking = await Booking.findById(id);
+    const booking = await Booking.findById(id).populate('tour_id');
     if (!booking) {
       return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
     }
 
-    // Chỉ huỷ được nếu chưa thanh toán
+    // Không hủy nếu đã thanh toán hoặc hoàn thành
     const notCancellableStatuses = ['paid', 'completed'];
     if (notCancellableStatuses.includes(booking.status)) {
       return res.status(400).json({ message: 'Đơn hàng đã thanh toán hoặc hoàn thành, không thể huỷ' });
@@ -210,6 +210,46 @@ exports.cancelBooking = async (req, res) => {
 
     booking.status = 'canceled';
     await booking.save();
+
+    // 📧 Gửi email báo hủy
+    try {
+      await sendBookingFailed(booking.email, booking);
+      console.log(`📧 Email thông báo huỷ gửi tới ${booking.email}`);
+    } catch (emailError) {
+      console.error('❌ Lỗi khi gửi email huỷ:', emailError);
+    }
+
+    res.status(200).json({ message: 'Đơn hàng đã được huỷ thành công', booking });
+  } catch (error) {
+    console.error('❌ Lỗi khi huỷ đơn hàng:', error);
+    res.status(500).json({ message: 'Lỗi máy chủ khi huỷ đơn hàng' });
+  }
+};
+exports.cancelBooking = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const booking = await Booking.findById(id).populate('tour_id');
+    if (!booking) {
+      return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
+    }
+
+    // Không hủy nếu đã thanh toán hoặc hoàn thành
+    const notCancellableStatuses = ['paid', 'completed'];
+    if (notCancellableStatuses.includes(booking.status)) {
+      return res.status(400).json({ message: 'Đơn hàng đã thanh toán hoặc hoàn thành, không thể huỷ' });
+    }
+
+    booking.status = 'canceled';
+    await booking.save();
+
+    // 📧 Gửi email báo hủy
+    try {
+      await sendBookingFailed(booking.email, booking);
+      console.log(`📧 Email thông báo huỷ gửi tới ${booking.email}`);
+    } catch (emailError) {
+      console.error('❌ Lỗi khi gửi email huỷ:', emailError);
+    }
 
     res.status(200).json({ message: 'Đơn hàng đã được huỷ thành công', booking });
   } catch (error) {
