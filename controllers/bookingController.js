@@ -3,7 +3,7 @@ const Booking = require('../schema/bookingSchema');
 const BookingOptionService = require('../schema/bookingOptionServiceSchema');
 const OptionService = require('../schema/optionServiceSchema');
 const Tour = require('../schema/tourSchema'); // ✅ Thêm import
-const { sendBookingConfirmation,sendBookingFailed } = require('../utils/sendEmail'); // ✅ Thêm import
+const { sendBookingConfirmation,sendBookingCancelled  } = require('../utils/sendEmail'); // ✅ Thêm import
 // Tạo booking mới và lưu lựa chọn dịch vụ
 exports.createBooking = async (req, res) => {
   try {
@@ -244,12 +244,15 @@ exports.cancelBooking = async (req, res) => {
     await booking.save();
 
     // 📧 Gửi email báo hủy
-    try {
-      await sendBookingFailed(booking.email, booking);
-      console.log(`📧 Email thông báo huỷ gửi tới ${booking.email}`);
-    } catch (emailError) {
-      console.error('❌ Lỗi khi gửi email huỷ:', emailError);
+    if (booking.email) {
+      try {
+        await sendBookingCancelled(booking.email, booking);
+        console.log(`📧 Email thông báo huỷ gửi tới ${booking.email}`);
+      } catch (emailError) {
+        console.error('❌ Lỗi khi gửi email huỷ:', emailError);
+      }
     }
+
 
     res.status(200).json({ message: 'Đơn hàng đã được huỷ thành công', booking });
   } catch (error) {

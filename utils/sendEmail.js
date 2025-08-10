@@ -102,7 +102,7 @@ Eksora Travel
   <div style="max-width: 600px; margin: auto; font-family: Arial, sans-serif; border: 1px solid #f00; border-radius: 12px; background-color: #fff1f1; padding: 24px;">
     <h2 style="color: #d8000c; text-align: center;">❌ Thanh toán thất bại</h2>
     <p>Chào <strong>${booking.fullName}</strong>,</p>
-    <p>Đơn hàng <strong>${booking.order_code}</strong> đã không được thanh toán thành công.</p>
+    <p>Đơn hàng đã không được thanh toán thành công.</p>
     <p>Hãy kiểm tra lại thông tin thanh toán hoặc thử lại sau.</p>
     <p style="margin-top: 20px;">Nếu cần trợ giúp, hãy liên hệ với chúng tôi qua hotline hoặc email hỗ trợ.</p>
     <p style="text-align: center; color: #555;">Eksora Travel luôn sẵn sàng hỗ trợ bạn!</p>
@@ -113,8 +113,38 @@ Eksora Travel
   await sendEmail(to, subject, text, html);
 };
 
+const sendBookingCancelled = async (to, booking) => {
+  const subject = '🚫 Hủy đơn hàng - Eksora Travel';
+
+  const text = `
+Chào ${booking.fullName},
+
+Đơn hàng ${booking.order_code} của bạn đã được hủy theo yêu cầu.
+
+Nếu đây là nhầm lẫn hoặc bạn muốn đặt lại, vui lòng truy cập website hoặc liên hệ với chúng tôi.
+
+Trân trọng,
+Eksora Travel
+  `;
+
+  const html = `
+  <div style="max-width: 600px; margin: auto; font-family: Arial, sans-serif; border: 1px solid #f0ad4e; border-radius: 12px; background-color: #fff8e1; padding: 24px;">
+    <h2 style="color: #ff9800; text-align: center;">🚫 Đơn hàng đã bị hủy</h2>
+    <p>Chào <strong>${booking.fullName}</strong>,</p>
+    <p>Đơn hàng <strong>${booking.order_code}</strong> đã được hủy theo yêu cầu của bạn.</p>
+    <p style="margin-top: 20px;">Nếu bạn muốn đặt lại tour hoặc cần hỗ trợ, hãy liên hệ với chúng tôi.</p>
+    <p style="text-align: center; color: #555;">Cảm ơn bạn đã quan tâm đến <strong>Eksora Travel</strong>!</p>
+    <p style="text-align: right;">Trân trọng,<br/><strong>Eksora Travel Team</strong></p>
+  </div>
+  `;
+
+  await sendEmail(to, subject, text, html);
+};
+
+
 module.exports = {
   sendEmail,
   sendBookingConfirmation,
-  sendBookingFailed
+  sendBookingFailed,
+  sendBookingCancelled
 };
