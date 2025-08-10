@@ -73,7 +73,7 @@ exports.createBooking = async (req, res) => {
     
 
       try {
-      await sendBookingConfirmation(email, populatedBooking);
+      await sendBookingConfirmation(email, populatedBooking, false);
       console.log(`📧 Email xác nhận đã gửi tới ${email}`);
     } catch (emailError) {
       console.error('❌ Lỗi khi gửi email xác nhận:', emailError);

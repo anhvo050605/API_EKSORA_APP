@@ -43,7 +43,7 @@ router.post('/receive-webhook', express.json(), async (req, res) => {
     console.log("✅ Lưu giao dịch và cập nhật booking thành công");
     if (payment_status === 'paid' && booking.email) {
       try {
-        await sendBookingConfirmation(booking.email, booking);
+        await sendBookingConfirmation(booking.email, booking, true);
         console.log("📧 Đã gửi email xác nhận tới:", booking.email);
       } catch (emailErr) {
         console.error("❌ Lỗi gửi email:", emailErr.message);

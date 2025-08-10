@@ -31,16 +31,18 @@ const formatDate = (dateStr) => {
   return `${d}/${m}/${y}`;
 };
 
-const sendBookingConfirmation = async (to, booking) => {
-  const subject = '🎫 Vé điện tử - Đơn hàng Eksora Travel đã xác nhận';
+const sendBookingConfirmation = async (to, booking, isPayment = false) => {
+  const subject = isPayment
+    ? '💳 Thanh toán thành công - Eksora Travel'
+    : '🎉 Đặt tour thành công - Eksora Travel';
 
   const text = `
 Chào ${booking.fullName},
 
-Cảm ơn bạn đã đặt tour với chúng tôi. Đơn hàng của bạn đã được thanh toán thành công.
+Cảm ơn bạn đã ${isPayment ? 'thanh toán đơn hàng' : 'đặt tour'} với chúng tôi.
 
 Chi tiết:
-- Mã đơn hàng: ${booking.order_code}
+${isPayment ? `- Mã đơn hàng: ${booking.order_code}\n` : ''}
 - Tên tour: ${booking.tour_id?.name || 'Không rõ'}
 - Ngày đi: ${formatDate(booking.travel_date)}
 - Người lớn: ${booking.quantity_nguoiLon}
@@ -53,20 +55,26 @@ Eksora Travel
 
   const html = `
   <div style="max-width: 600px; margin: auto; font-family: Arial, sans-serif; border: 1px solid #ccc; border-radius: 12px; overflow: hidden; background-color: #f9f9f9; padding: 24px;">
-    <h2 style="color: #2b7bff; text-align: center;">🎉 Đặt tour thành công!</h2>
+    <h2 style="color: ${isPayment ? '#28a745' : '#2b7bff'}; text-align: center;">
+      ${isPayment ? '💳 Thanh toán thành công!' : '🎉 Đặt tour thành công!'}
+    </h2>
     <p>Chào <strong>${booking.fullName}</strong>,</p>
-    <p>Cảm ơn bạn đã đặt tour với <strong>Eksora Travel</strong>. Vé điện tử của bạn như sau:</p>
+    <p>Cảm ơn bạn đã ${isPayment ? 'hoàn tất thanh toán' : 'đặt tour'} với <strong>Eksora Travel</strong>.</p>
 
     <div style="border: 1px dashed #888; padding: 16px; border-radius: 8px; background-color: #fff; margin-top: 12px;">
       <h3 style="color: #333;">🎫 Vé tour: ${booking.tour_id?.name || 'Không rõ'}</h3>
-      <p><strong>Mã đơn hàng:</strong> ${booking.order_code}</p>
+      ${isPayment ? `<p><strong>Mã đơn hàng:</strong> ${booking.order_code}</p>` : ''}
       <p><strong>Ngày đi:</strong> ${formatDate(booking.travel_date)}</p>
       <p><strong>Người lớn:</strong> ${booking.quantity_nguoiLon}</p>
       <p><strong>Trẻ em:</strong> ${booking.quantity_treEm}</p>
       <p><strong>Tổng tiền:</strong> <span style="color: green;">${booking.totalPrice.toLocaleString()} VND</span></p>
     </div>
 
-    <p style="margin-top: 20px;">Chúng tôi sẽ liên hệ lại với bạn sớm nhất để xác nhận thêm.</p>
+    <p style="margin-top: 20px;">
+      ${isPayment
+        ? 'Chúng tôi sẽ liên hệ để xác nhận và gửi thông tin bổ sung cho chuyến đi của bạn.'
+        : 'Vui lòng tiến hành thanh toán để hoàn tất đặt tour.'}
+    </p>
     <p style="text-align: center; color: #999;">Cảm ơn bạn đã tin tưởng <strong>Eksora Travel</strong>!</p>
     <p style="text-align: right;">Trân trọng,<br/><strong>Eksora Travel Team</strong></p>
   </div>
@@ -74,6 +82,7 @@ Eksora Travel
 
   await sendEmail(to, subject, text, html);
 };
+
 
 const sendBookingFailed = async (to, booking) => {
   const subject = '❌ Thanh toán thất bại - Đơn hàng Eksora Travel';
