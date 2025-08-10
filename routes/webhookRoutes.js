@@ -36,7 +36,7 @@ router.post('/receive-webhook', express.json(), async (req, res) => {
     if (payosCode === '00' && payosStatus === 'SUCCESS') {
       payment_status = 'paid';
     } else {
-      payment_status = 'failed';
+      payment_status = 'CANCELLED';
     }
 
     console.log(`📌 Kết quả thanh toán từ PayOS: code=${payosCode}, status=${payosStatus} => ${payment_status}`);
