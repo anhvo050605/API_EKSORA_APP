@@ -72,8 +72,8 @@ Eksora Travel
 
     <p style="margin-top: 20px;">
       ${isPayment
-        ? 'Chúng tôi sẽ liên hệ để xác nhận và gửi thông tin bổ sung cho chuyến đi của bạn.'
-        : 'Vui lòng tiến hành thanh toán để hoàn tất đặt tour.'}
+      ? 'Chúng tôi sẽ liên hệ để xác nhận và gửi thông tin bổ sung cho chuyến đi của bạn.'
+      : 'Vui lòng tiến hành thanh toán để hoàn tất đặt tour.'}
     </p>
     <p style="text-align: center; color: #999;">Cảm ơn bạn đã tin tưởng <strong>Eksora Travel</strong>!</p>
     <p style="text-align: right;">Trân trọng,<br/><strong>Eksora Travel Team</strong></p>
@@ -116,10 +116,18 @@ Eksora Travel
 const sendBookingCancelled = async (to, booking) => {
   const subject = '🚫 Hủy đơn hàng - Eksora Travel';
 
+  const orderCodeText = booking.order_code 
+    ? `Đơn hàng ${booking.order_code} của bạn đã được hủy theo yêu cầu.`
+    : `Đơn hàng của bạn đã được hủy theo yêu cầu.`;
+
+  const orderCodeHtml = booking.order_code
+    ? `<p>Đơn hàng <strong>${booking.order_code}</strong> đã được hủy theo yêu cầu của bạn.</p>`
+    : `<p>Đơn hàng của bạn đã được hủy theo yêu cầu.</p>`;
+
   const text = `
 Chào ${booking.fullName},
 
-Đơn hàng ${booking.order_code} của bạn đã được hủy theo yêu cầu.
+${orderCodeText}
 
 Nếu đây là nhầm lẫn hoặc bạn muốn đặt lại, vui lòng truy cập website hoặc liên hệ với chúng tôi.
 
@@ -131,7 +139,7 @@ Eksora Travel
   <div style="max-width: 600px; margin: auto; font-family: Arial, sans-serif; border: 1px solid #f0ad4e; border-radius: 12px; background-color: #fff8e1; padding: 24px;">
     <h2 style="color: #ff9800; text-align: center;">🚫 Đơn hàng đã bị hủy</h2>
     <p>Chào <strong>${booking.fullName}</strong>,</p>
-    <p>Đơn hàng <strong>${booking.order_code}</strong> đã được hủy theo yêu cầu của bạn.</p>
+    ${orderCodeHtml}
     <p style="margin-top: 20px;">Nếu bạn muốn đặt lại tour hoặc cần hỗ trợ, hãy liên hệ với chúng tôi.</p>
     <p style="text-align: center; color: #555;">Cảm ơn bạn đã quan tâm đến <strong>Eksora Travel</strong>!</p>
     <p style="text-align: right;">Trân trọng,<br/><strong>Eksora Travel Team</strong></p>
@@ -140,6 +148,7 @@ Eksora Travel
 
   await sendEmail(to, subject, text, html);
 };
+
 
 
 module.exports = {
