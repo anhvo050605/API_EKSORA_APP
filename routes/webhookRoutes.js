@@ -13,31 +13,41 @@ router.post('/receive-webhook', express.json(), async (req, res) => {
     const payload = req.body;
 
     const orderCode = payload?.data?.orderCode;
-    const isPaid = payload?.data?.code === '00';
-    const status = isPaid ? 'PAID' : 'FAILED';
+    const payosCode = payload?.data?.code; // '00' hoặc lỗi khác
+    const payosStatus = payload?.data?.status; // 'SUCCESS', 'FAILED', 'CANCELLED'
     const amount = payload?.data?.amount;
-    const message = payload?.data?.desc || 'Không có mô tả lỗi'; // Lý do thất bại
+    const message = payload?.data?.desc || 'Không có mô tả lỗi'; // Lý do thất bại hoặc mô tả
 
+    // Kiểm tra orderCode
     if (!orderCode) {
       console.warn("⚠️ Không có orderCode trong payload:", payload);
       return res.status(200).send("Webhook test: không có orderCode");
     }
 
-    // Lấy booking và tour
+    // Lấy booking từ DB
     let booking = await Booking.findOne({ order_code: orderCode }).populate('tour_id');
     if (!booking) {
       console.error("❌ Không tìm thấy booking với orderCode:", orderCode);
       return res.status(404).send('Booking không tồn tại');
     }
 
+    // Xác định trạng thái thanh toán
+    let payment_status;
+    if (payosCode === '00' && payosStatus === 'SUCCESS') {
+      payment_status = 'paid';
+    } else {
+      payment_status = 'failed';
+    }
+
+    console.log(`📌 Kết quả thanh toán từ PayOS: code=${payosCode}, status=${payosStatus} => ${payment_status}`);
+
     // Lưu transaction
-    const payment_status = isPaid ? 'paid' : 'failed';
     const transaction = new Transaction({
       booking_id: booking._id,
       amount,
       payment_method: "PayOS",
       status: payment_status,
-      note: message // Lưu lý do vào DB
+      note: message
     });
     await transaction.save();
 
