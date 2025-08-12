@@ -53,4 +53,35 @@ exports.deleteVoucher = async (req, res) => {
     res.status(500).json({ message: 'Lỗi khi xoá voucher' });
   }
 };
+exports.updateVoucherStatus = async (req, res) => {
+  try {
+    const { id } = req.params; // Lấy ID voucher từ URL
+    const { status } = req.body; // Lấy trạng thái mới từ body
+
+    // Kiểm tra có truyền status không
+    if (!status) {
+      return res.status(400).json({ message: 'Vui lòng cung cấp trạng thái mới' });
+    }
+
+    // Cập nhật trạng thái
+    const updatedVoucher = await Voucher.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true } // Trả về dữ liệu đã cập nhật
+    );
+
+    if (!updatedVoucher) {
+      return res.status(404).json({ message: 'Không tìm thấy voucher' });
+    }
+
+    res.status(200).json({
+      message: 'Cập nhật trạng thái voucher thành công',
+      voucher: updatedVoucher
+    });
+  } catch (err) {
+    console.error('❌ Lỗi khi cập nhật trạng thái voucher:', err);
+    res.status(500).json({ message: 'Lỗi khi cập nhật trạng thái voucher', error: err.message });
+  }
+};
+
 
