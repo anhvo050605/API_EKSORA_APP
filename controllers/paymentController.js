@@ -1,5 +1,4 @@
 const Booking = require('../schema/bookingSchema');
-const Transaction = require('../schema/transactionSchema');
 const PayOS = require('@payos/node');
 const mongoose = require('mongoose');
 
@@ -9,37 +8,28 @@ const payos = new PayOS(
   process.env.PAYOS_CHECKSUM_KEY
 );
 
-// ✅ API tạo link thanh toán
 exports.createPaymentLink = async (req, res) => {
   try {
-    const {
-      amount,
-      buyerName,
-      buyerEmail,
-      buyerPhone,
-      buyerAddress,
-      description,
-      booking_id
-    } = req.body;
+    const { amount, buyerName, buyerEmail, buyerPhone, buyerAddress, description, booking_id } = req.body;
 
-    // Kiểm tra thông tin bắt buộc
+    // --- Kiểm tra thông tin bắt buộc ---
     if (!amount || !buyerName || !booking_id) {
       return res.status(400).json({ message: 'Thiếu thông tin thanh toán' });
     }
 
-    // Tìm booking
+    // --- Tìm booking ---
     const booking = await Booking.findById(booking_id);
     if (!booking) {
       return res.status(404).json({ message: 'Booking không tồn tại' });
     }
 
-    // Xử lý orderCode
+    // --- Xử lý orderCode ---
     let orderCode = booking.order_code;
 
-    if (orderCode) {
+    const shouldCreateNewOrder = !orderCode;
+    if (!shouldCreateNewOrder) {
       try {
         const existingLink = await payos.getPaymentLink(orderCode);
-
         if (existingLink?.checkoutUrl) {
           return res.status(200).json({
             url: existingLink.checkoutUrl,
@@ -47,55 +37,44 @@ exports.createPaymentLink = async (req, res) => {
             booking_id
           });
         } else {
-          console.warn("⚠️ Link đã tồn tại nhưng không dùng được → tạo orderCode mới");
           booking.order_code = undefined;
           await booking.save();
           orderCode = undefined;
         }
       } catch (err) {
         const payosError = err?.response?.data?.error;
-
-        if (payosError === 'ORDER_NOT_FOUND') {
-          console.log("🔁 Không tìm thấy đơn hàng cũ trên PayOS → tạo mới");
-        } else {
-          console.warn("⚠️ Có lỗi khi kiểm tra orderCode → tạo orderCode mới");
-          booking.order_code = undefined;
-          await booking.save();
-          orderCode = undefined;
+        if (payosError !== 'ORDER_NOT_FOUND') {
+          console.warn("⚠️ Lỗi kiểm tra orderCode PayOS, tạo mới", err.message);
         }
+        booking.order_code = undefined;
+        await booking.save();
+        orderCode = undefined;
       }
     }
 
-    // Tạo mới orderCode nếu chưa có hoặc đã reset
+    // --- Tạo mới orderCode nếu chưa có ---
     if (!orderCode) {
-      orderCode = parseInt(
-        new mongoose.Types.ObjectId().toHexString().slice(-12),
-        16
-      );
+      orderCode = parseInt(new mongoose.Types.ObjectId().toHexString().slice(-12), 16);
       booking.order_code = orderCode;
       await booking.save();
     }
 
-    // Giới hạn mô tả 25 ký tự
-    const safeDescription = typeof description === 'string'
-      ? description.substring(0, 25)
-      : 'Thanh toán đơn hàng';
-
+    // --- Chuẩn bị dữ liệu gửi lên PayOS ---
+    const safeDescription = typeof description === 'string' ? description.substring(0, 25) : 'Thanh toán đơn hàng';
     const expiredAt = Math.floor(Date.now() / 1000) + 15 * 60;
 
     console.log("🚀 Gửi PayOS với dữ liệu:", {
       orderCode,
       amount: Number(amount),
       description: safeDescription,
-      returnUrl: 'http://160.250.246.76:3000/return',
-      cancelUrl: 'http://160.250.246.76:3000/cancel',
-      buyerName: buyerName || 'Không rõ',
-      buyerEmail: buyerEmail || 'unknown@example.com',
-      buyerPhone: buyerPhone || '0000000000',
-      buyerAddress: buyerAddress || 'Không rõ',
+      buyerName,
+      buyerEmail,
+      buyerPhone,
+      buyerAddress,
       expiredAt
     });
 
+    // --- Gọi API PayOS ---
     const paymentLinkRes = await payos.createPaymentLink({
       orderCode,
       amount: Number(amount),
