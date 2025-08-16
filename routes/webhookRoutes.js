@@ -54,7 +54,7 @@ router.post('/receive-webhook', express.json(), async (req, res) => {
     const transaction = new Transaction({
       booking_id: booking._id,
       amount,
-      payment_method: "PayOS",
+      payment_method: "payos",
       status: payment_status,
       note: message
     });
