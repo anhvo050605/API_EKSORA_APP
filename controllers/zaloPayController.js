@@ -60,8 +60,8 @@ exports.createZaloPayOrder = async (req, res) => {
     const newTransaction = new Transaction({
       booking_id,
       amount,
-      payment_method: "ZaloPay",
-      provider: "ZaloPay",
+      payment_method: "zalopay",
+      provider: "zalopay",
       order_code: app_trans_id,
       status: "pending",
     });
