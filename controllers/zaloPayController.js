@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const axios = require("axios");
+const qs = require("qs");
 const Booking = require("../schema/bookingSchema");
 const Transaction = require("../schema/transactionSchema");
 
@@ -26,7 +27,7 @@ exports.createZaloPayOrder = async (req, res) => {
     // Chuẩn bị dữ liệu gửi lên ZaloPay
     const order = {
       app_id: ZALOPAY_APP_ID,
-      app_trans_id, // Mã giao dịch
+      app_trans_id,
       app_user: booking.fullName || "guest",
       app_time: Date.now(),
       amount,
@@ -37,14 +38,17 @@ exports.createZaloPayOrder = async (req, res) => {
       callback_url: "http://160.250.246.76:3000/api/zalo-pay/callback",
     };
 
-    // Tạo MAC
-    const data = `${order.app_id}|${order.app_trans_id}|${order.app_user}|${order.amount}|${order.app_time}|${order.embed_data}|${order.item}`;
+    // ✅ Tạo MAC theo đúng tài liệu
+    const data =
+      `${order.app_id}|${order.app_trans_id}|${order.app_user}|${order.amount}|${order.app_time}|${order.embed_data}|${order.item}`;
     order.mac = crypto.createHmac("sha256", ZALOPAY_KEY1).update(data).digest("hex");
 
-    // Gửi request đến ZaloPay
-    const response = await axios.post(`${ZALOPAY_ENDPOINT}/v2/create`, null, {
-      params: order,
-    });
+    // ✅ Gửi request dạng form-urlencoded
+    const response = await axios.post(
+      `${ZALOPAY_ENDPOINT}/v2/create`,
+      qs.stringify(order),
+      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+    );
 
     // Lưu transaction
     const newTransaction = new Transaction({
@@ -67,7 +71,7 @@ exports.createZaloPayOrder = async (req, res) => {
       zalo_url: response.data.order_url, // Link thanh toán ZaloPay
     });
   } catch (err) {
-    console.error("❌ Lỗi tạo đơn hàng ZaloPay:", err.message);
+    console.error("❌ Lỗi tạo đơn hàng ZaloPay:", err.response?.data || err.message);
     return res.status(500).json({ message: "Lỗi tạo đơn hàng ZaloPay", error: err.message });
   }
 };
@@ -78,6 +82,7 @@ exports.zaloPayCallback = async (req, res) => {
     const dataStr = req.body.data;
     const reqMac = req.body.mac;
 
+    // ✅ Kiểm tra MAC với key2
     const mac = crypto.createHmac("sha256", ZALOPAY_KEY2).update(dataStr).digest("hex");
 
     if (reqMac !== mac) {
@@ -87,9 +92,12 @@ exports.zaloPayCallback = async (req, res) => {
     const dataJson = JSON.parse(dataStr);
     const { booking_id } = JSON.parse(dataJson.embed_data);
 
-    // Cập nhật trạng thái thanh toán
+    // ✅ Cập nhật trạng thái thanh toán
     await Booking.findByIdAndUpdate(booking_id, { status: "paid" });
-    await Transaction.findOneAndUpdate({ order_code: dataJson.app_trans_id }, { status: "paid" });
+    await Transaction.findOneAndUpdate(
+      { order_code: dataJson.app_trans_id },
+      { status: "paid" }
+    );
 
     return res.status(200).json({ return_code: 1, return_message: "Thanh toán thành công" });
   } catch (err) {
