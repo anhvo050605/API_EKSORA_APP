@@ -4,6 +4,20 @@ const Transaction = require('../schema/transactionSchema');
 const Booking = require('../schema/bookingSchema');
 const { sendBookingConfirmation, sendBookingFailed } = require('../utils/sendEmail');
 
+// Hàm map trạng thái từ PayOS sang trạng thái nội bộ
+function mapPayOSStatus(payosCode, payosStatus) {
+  if (payosCode === '00' && (payosStatus === 'SUCCESS' || payosStatus === 'PAID')) {
+    return 'paid';
+  }
+  if (payosStatus === 'FAILED') {
+    return 'failed';
+  }
+  if (payosStatus === 'CANCELLED') {
+    return 'cancelled';
+  }
+  return 'pending'; // fallback
+}
+
 router.post('/receive-webhook', express.json(), async (req, res) => {
   try {
     console.log('🔍 Headers:', req.headers);
@@ -13,10 +27,10 @@ router.post('/receive-webhook', express.json(), async (req, res) => {
     const payload = req.body;
 
     const orderCode = payload?.data?.orderCode;
-    const payosCode = payload?.data?.code; // '00' hoặc lỗi khác
-    const payosStatus = payload?.data?.status; // 'SUCCESS', 'FAILED', 'CANCELLED'
+    const payosCode = payload?.data?.code; 
+    const payosStatus = payload?.data?.status; 
     const amount = payload?.data?.amount;
-    const message = payload?.data?.desc || 'Không có mô tả lỗi'; // Lý do thất bại hoặc mô tả
+    const message = payload?.data?.desc || 'Không có mô tả lỗi'; 
 
     // Kiểm tra orderCode
     if (!orderCode) {
@@ -31,13 +45,8 @@ router.post('/receive-webhook', express.json(), async (req, res) => {
       return res.status(404).send('Booking không tồn tại');
     }
 
-    // Xác định trạng thái thanh toán
-    let payment_status;
-    if (payosCode === '00' && payosStatus === 'SUCCESS') {
-      payment_status = 'paid';
-    } else {
-      payment_status = 'CANCELLED';
-    }
+    // Map trạng thái thanh toán
+    const payment_status = mapPayOSStatus(payosCode, payosStatus);
 
     console.log(`📌 Kết quả thanh toán từ PayOS: code=${payosCode}, status=${payosStatus} => ${payment_status}`);
 
@@ -62,7 +71,7 @@ router.post('/receive-webhook', express.json(), async (req, res) => {
       if (payment_status === 'paid' && booking.email) {
         await sendBookingConfirmation(booking.email, booking, true);
         console.log(`📧 Email XÁC NHẬN thanh toán gửi tới ${booking.email}`);
-      } else if (payment_status === 'failed' && booking.email) {
+      } else if (['failed', 'cancelled'].includes(payment_status) && booking.email) {
         await sendBookingFailed(booking.email, booking);
         console.log(`📧 Email THẤT BẠI gửi tới ${booking.email}`);
       }
