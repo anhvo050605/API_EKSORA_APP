@@ -109,7 +109,7 @@ exports.createZaloPayOrder = async (req, res) => {
             const { booking_id } = JSON.parse(dataJson.embed_data);
 
             // ✅ Nếu thanh toán thành công (return_code = 1)
-            if (dataJson.return_code === 1) {
+            if (dataJson.status  === 1) {
                 await Booking.findByIdAndUpdate(booking_id, { status: "paid" });
                 await Transaction.findOneAndUpdate(
                     { order_code: dataJson.app_trans_id },
