@@ -32,24 +32,23 @@ router.post('/zalopay-webhook', express.json(), async (req, res) => {
         }
 
         // ✅ Parse JSON trong field data
+        // ✅ Parse JSON trong field data
         const dataJson = JSON.parse(data);
         console.log("📩 Callback từ ZaloPay:", JSON.stringify(dataJson, null, 2));
 
-        const appTransId = dataJson.app_trans_id;
         const amount = dataJson.amount;
         const status = dataJson.status;
-        console.log("📊 Status nhận từ ZaloPay:", status);
-        console.log("📊 app_trans_id:", appTransId);
 
-        // Booking ID giả sử app_trans_id dạng "bookingId_timestamp"
-        const bookingId = appTransId.split("_")[0];
-        console.log("🔑 bookingId parse ra:", bookingId);
+        // ✅ bookingId phải lấy từ embed_data
+        const { booking_id } = JSON.parse(dataJson.embed_data);
+        console.log("🔑 bookingId lấy từ embed_data:", booking_id);
 
-        let booking = await Booking.findById(bookingId).populate('tour_id');
+        let booking = await Booking.findById(booking_id).populate('tour_id');
         if (!booking) {
-            console.error("❌ Không tìm thấy booking:", bookingId);
+            console.error("❌ Không tìm thấy booking:", booking_id);
             return res.json({ return_code: 1, return_message: "Booking not found" });
         }
+
         console.log("📚 Booking tìm thấy:", booking);
 
         // ✅ Xác định trạng thái từ callback ZaloPay
