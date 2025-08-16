@@ -43,7 +43,7 @@ exports.createZaloPayOrder = async (req, res) => {
 
     // Gửi request tới sandbox
     const response = await axios.post(
-      `${ZALOPAY_ENDPOINT}/create`,
+      `${ZALOPAY_ENDPOINT}/v2/create`,
       qs.stringify(order),
       { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
     );
