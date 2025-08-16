@@ -17,7 +17,7 @@ router.post('/zalopay-webhook', express.json(), async (req, res) => {
         }
 
         // ✅ Verify MAC
-        const key1 = process.env.ZALO_KEY1; // lấy trong dashboard ZaloPay
+        const key1 = process.env.ZALO_KEY1;
         const genMac = crypto.createHmac('sha256', key1).update(data).digest('hex');
 
         if (mac !== genMac) {
@@ -29,12 +29,8 @@ router.post('/zalopay-webhook', express.json(), async (req, res) => {
         const dataJson = JSON.parse(data);
         console.log("📩 Callback từ ZaloPay:", dataJson);
 
-        const appTransId = dataJson.app_trans_id;
-        const amount = dataJson.amount;
-        const status = dataJson.status; // 1 = thành công, 0 = thất bại
-
-        // Booking ID: giả sử bạn encode vào app_trans_id dạng "bookingId_timestamp"
-        const bookingId = appTransId.split("_")[1];
+        const { app_trans_id, amount, status } = dataJson;
+        const bookingId = app_trans_id.split("_")[1]; // bookingId_timestamp
 
         let booking = await Booking.findById(bookingId).populate('tour_id');
         if (!booking) {
@@ -42,44 +38,45 @@ router.post('/zalopay-webhook', express.json(), async (req, res) => {
             return res.json({ return_code: 1, return_message: "Booking not found" });
         }
 
-        // ✅ Xác định trạng thái
-        // ✅ Xác định trạng thái từ callback ZaloPay
-        let payment_status;
-        if (status === 1) {
-            payment_status = "paid";        // Thành công
-        } else if (status === -1) {
-            payment_status = "failed";      // Thất bại
-        } else {
-            payment_status = "pending";     // Đang xử lý
+        // ✅ Map status từ ZaloPay
+        let payment_status = "pending";
+        if (status == 1) {
+            payment_status = "paid";
+        } else if (status == -1 || status == 0) {
+            payment_status = "failed";
         }
 
-        // ✅ Lưu transaction
-        const transaction = new Transaction({
-            booking_id: booking._id,
-            amount,
-            payment_method: "ZaloPay",
-            status: payment_status,
-            note: payment_status === "paid"
-                ? "Thanh toán thành công"
-                : payment_status === "failed"
-                    ? "Thanh toán thất bại"
-                    : "Đang xử lý"
-        });
-        await transaction.save();
+        // ✅ Kiểm tra trùng giao dịch
+        const existTx = await Transaction.findOne({ booking_id: booking._id, status: payment_status });
+        if (!existTx) {
+            await Transaction.create({
+                booking_id: booking._id,
+                amount,
+                payment_method: "ZaloPay",
+                status: payment_status,
+                note:
+                    payment_status === "paid"
+                        ? "Thanh toán thành công"
+                        : payment_status === "failed"
+                            ? "Thanh toán thất bại"
+                            : "Đang xử lý",
+            });
+        }
 
-        // ✅ Update booking
-        booking.status = payment_status;
-        await booking.save();
+        // ✅ Update booking nếu khác trạng thái cũ
+        if (booking.status !== payment_status) {
+            booking.status = payment_status;
+            await booking.save();
+        }
 
+        console.log(`✅ Booking ${bookingId} cập nhật thành: ${payment_status}`);
 
-        console.log("✅ Lưu giao dịch & cập nhật booking thành công");
-
-        // Gửi email
+        // ✅ Gửi email thông báo
         try {
-            if (payment_status === 'paid' && booking.email) {
+            if (payment_status === "paid" && booking.email) {
                 await sendBookingConfirmation(booking.email, booking, true);
                 console.log(`📧 Email XÁC NHẬN gửi tới ${booking.email}`);
-            } else if (payment_status === 'failed' && booking.email) {
+            } else if (payment_status === "failed" && booking.email) {
                 await sendBookingFailed(booking.email, booking);
                 console.log(`📧 Email THẤT BẠI gửi tới ${booking.email}`);
             }
@@ -87,12 +84,12 @@ router.post('/zalopay-webhook', express.json(), async (req, res) => {
             console.error("❌ Lỗi gửi email:", emailErr.message);
         }
 
-        // ✅ Bắt buộc phải trả về cho ZaloPay
-        res.json({ return_code: 1, return_message: "success" });
+        // ✅ Bắt buộc trả về cho ZaloPay
+        return res.json({ return_code: 1, return_message: "success" });
 
     } catch (err) {
         console.error("❌ Lỗi webhook ZaloPay:", err);
-        res.json({ return_code: 0, return_message: "server error" });
+        return res.json({ return_code: 0, return_message: "server error" });
     }
 });
 
