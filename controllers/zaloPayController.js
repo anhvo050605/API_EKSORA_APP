@@ -49,6 +49,8 @@ exports.createZaloPayOrder = async (req, res) => {
       { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
     );
 
+    console.log("📌 ZaloPay response:", response.data);
+
     // Lưu transaction vào DB
     const newTransaction = new Transaction({
       booking_id,
@@ -65,11 +67,16 @@ exports.createZaloPayOrder = async (req, res) => {
     booking.order_code = app_trans_id;
     await booking.save();
 
+    // ✅ Trả kết quả về FE
     return res.status(200).json({
       booking_id,
       order_code: app_trans_id,
       zp_trans_token: response.data.zp_trans_token, // Token giao dịch
-      zalo_url: response.data.order_url,            // Link thanh toán ZaloPay
+      zalo_url:
+        response.data.order_url ||
+        response.data.orderurl ||
+        response.data.payment_url, // fallback nếu sandbox dùng field khác
+      raw: response.data, // để debug, FE có thể bỏ đi sau
     });
   } catch (err) {
     console.error("❌ Lỗi tạo đơn hàng ZaloPay:", err.response?.data || err.message);
