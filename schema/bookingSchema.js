@@ -12,7 +12,7 @@ const bookingSchema = new mongoose.Schema({
   // price_treEm: { type: Number, default: 0 },
   totalPrice: { type: Number, default: 0 },
   transaction_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Transaction' },
-  order_code: { type: Number, default: null },
+  order_code: { type: String, default: null },
   voucher_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Voucher' },
   status: {
     type: String,
