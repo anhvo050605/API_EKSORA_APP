@@ -5,30 +5,25 @@ const Booking = require('../schema/bookingSchema');
 const { sendBookingConfirmation, sendBookingFailed } = require('../utils/sendEmail');
 
 // Hàm map trạng thái từ PayOS sang trạng thái nội bộ
-function mapPayOSStatus(payosCode, payosStatus) {
-  if (payosCode === '00' && (payosStatus === 'SUCCESS' || payosStatus === 'PAID')) {
+function mapPayOSStatus(payosCode) {
+  if (payosCode === '00') {
     return 'paid';
   }
-  if (payosStatus === 'FAILED') {
-    return 'failed';
-  }
-  if (payosStatus === 'CANCELLED') {
-    return 'cancelled';
-  }
-  return 'pending'; // fallback
+  return 'failed'; // fallback cho các code khác
 }
 
 router.post('/receive-webhook', express.json(), async (req, res) => {
   try {
     console.log('🔍 Headers:', req.headers);
-    console.log("📦 Payload:", req.body);
+    console.log('📦 Raw Body:', req.body);
+    console.log("✅ ĐÃ NHẬN WEBHOOK:", req.body);
 
     const payload = req.body?.data;
+
     const orderCode = payload?.orderCode;
-    const payosCode = payload?.code;
-    const payosStatus = payload?.status;
+    const payosCode = payload?.code; 
     const amount = payload?.amount;
-    const message = payload?.desc || 'Không có mô tả lỗi';
+    const message = payload?.desc || 'Không có mô tả lỗi'; 
 
     // Kiểm tra orderCode
     if (!orderCode) {
@@ -44,36 +39,24 @@ router.post('/receive-webhook', express.json(), async (req, res) => {
     }
 
     // Map trạng thái thanh toán
-    const payment_status = mapPayOSStatus(payosCode, payosStatus);
-    console.log(`📌 Kết quả thanh toán từ PayOS: code=${payosCode}, status=${payosStatus} => ${payment_status}`);
+    const payment_status = mapPayOSStatus(payosCode);
 
-    // Tìm transaction cũ
-    let transaction = await Transaction.findOne({ booking_id: booking._id });
+    console.log(`📌 Kết quả thanh toán từ PayOS: code=${payosCode} => ${payment_status}`);
 
-    if (transaction) {
-      // Update transaction cũ
-      transaction.status = payment_status;
-      transaction.amount = amount;
-      transaction.note = message;
-      transaction.payment_date = new Date();
-      await transaction.save();
-      console.log("♻️ Đã cập nhật transaction cũ");
-    } else {
-      // Tạo transaction mới
-      transaction = new Transaction({
-        booking_id: booking._id,
-        amount,
-        payment_method: "payos",
-        status: payment_status,
-        note: message
-      });
-      await transaction.save();
-      console.log("✅ Đã tạo transaction mới");
-    }
+    // Lưu transaction
+    const transaction = new Transaction({
+      booking_id: booking._id,
+      amount,
+      payment_method: "payos",
+      status: payment_status,
+      note: message
+    });
+    await transaction.save();
 
     // Cập nhật booking
     booking.status = payment_status;
     await booking.save();
+
     console.log("✅ Lưu giao dịch & cập nhật booking thành công");
 
     // Gửi email
@@ -81,7 +64,7 @@ router.post('/receive-webhook', express.json(), async (req, res) => {
       if (payment_status === 'paid' && booking.email) {
         await sendBookingConfirmation(booking.email, booking, true);
         console.log(`📧 Email XÁC NHẬN thanh toán gửi tới ${booking.email}`);
-      } else if (['failed', 'cancelled'].includes(payment_status) && booking.email) {
+      } else if (payment_status === 'failed' && booking.email) {
         await sendBookingFailed(booking.email, booking);
         console.log(`📧 Email THẤT BẠI gửi tới ${booking.email}`);
       }
