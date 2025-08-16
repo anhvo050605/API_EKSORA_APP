@@ -118,7 +118,8 @@ exports.createPaymentLink = async (req, res) => {
       buyerName,
       buyerEmail,
       buyerPhone,
-      buyerAddress
+      buyerAddress,
+       payment_method: 'payos'
     });
 
     return res.status(200).json({
