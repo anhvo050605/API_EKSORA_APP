@@ -93,6 +93,7 @@ exports.createZaloPayOrder = async (req, res) => {
 };
 
 // ---------------- CALLBACK ----------------
+// ---------------- CALLBACK ----------------
 exports.zaloPayCallback = async (req, res) => {
   try {
     console.log("📩 Webhook callback:", req.body);
@@ -114,20 +115,31 @@ exports.zaloPayCallback = async (req, res) => {
     console.log("📊 Data JSON parse:", dataJson);
 
     const { booking_id } = JSON.parse(dataJson.embed_data);
+    const app_trans_id = dataJson.app_trans_id;
+    const status = dataJson.status;
 
-    // ✅ Xử lý thanh toán thành công
-    if (dataJson.status === 1) {
-      await Booking.findByIdAndUpdate(booking_id, { status: "paid" });
-      await Transaction.findOneAndUpdate(
-        { order_code: dataJson.app_trans_id },
-        { status: "paid" }
-      );
+    console.log("🔑 booking_id:", booking_id);
+    console.log("🔑 app_trans_id:", app_trans_id);
+    console.log("📊 status từ Zalo:", status);
+
+    let payment_status;
+    if (status === 1) {
+      payment_status = "paid";
+    } else if (status === -1 || status === 0) {
+      payment_status = "failed";
     } else {
-      await Transaction.findOneAndUpdate(
-        { order_code: dataJson.app_trans_id },
-        { status: "failed" }
-      );
+      payment_status = "pending";
     }
+
+    // ✅ Update cả Booking và Transaction
+    await Booking.findByIdAndUpdate(booking_id, { status: payment_status });
+    await Transaction.findOneAndUpdate(
+      { order_code: app_trans_id },
+      { status: payment_status }
+    );
+
+    console.log(`💾 Booking ${booking_id} -> ${payment_status}`);
+    console.log(`💾 Transaction ${app_trans_id} -> ${payment_status}`);
 
     return res.json({ return_code: 1, return_message: "success" });
   } catch (err) {
@@ -135,3 +147,4 @@ exports.zaloPayCallback = async (req, res) => {
     return res.json({ return_code: 0, return_message: "server error" });
   }
 };
+
