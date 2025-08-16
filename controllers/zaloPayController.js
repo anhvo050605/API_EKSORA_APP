@@ -57,6 +57,7 @@ exports.createZaloPayOrder = async (req, res) => {
       order_code: app_trans_id,
       amount,
       status: "pending",
+        payment_method: "zalopay",
     });
     await newTransaction.save();
 
