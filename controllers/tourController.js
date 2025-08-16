@@ -9,13 +9,13 @@ const Booking = require('../schema/bookingSchema');
 // Lấy tất cả tour
 const getAllTours = async (req, res) => {
   try {
-    const { cateID, status } = req.query;
+    const { cateID } = req.query;
 
     const query = {
       price: { $gt: 0 }, // Chỉ lấy tour có giá > 0
+      status: 'active',  // ✅ Chỉ lấy tour đang active
     };
     if (cateID) query.cateID = new mongoose.Types.ObjectId(cateID);
-    if (status) query.status = status;
 
     const tours = await Tour.find(query)
       .populate('cateID')
@@ -31,14 +31,14 @@ const getAllTours = async (req, res) => {
             const options = await OptionService.find({ service_id: service._id });
             return {
               ...service.toObject(),
-              options
+              options,
             };
           })
         );
 
         return {
           ...tour.toObject(),
-          services: servicesWithOptions
+          services: servicesWithOptions,
         };
       })
     );
@@ -52,12 +52,12 @@ const getAllTours = async (req, res) => {
 
 const getAllToursIncludeFree = async (req, res) => {
   try {
-    const { cateID, status } = req.query;
+    const { cateID } = req.query;
 
-    const query = {};
-
+    const query = {
+      status: 'active', // ✅ Chỉ lấy tour đang active
+    };
     if (cateID) query.cateID = new mongoose.Types.ObjectId(cateID);
-    if (status) query.status = status;
 
     const tours = await Tour.find(query)
       .populate('cateID')
@@ -69,6 +69,7 @@ const getAllToursIncludeFree = async (req, res) => {
     res.status(500).json({ message: 'Lỗi máy chủ', error });
   }
 };
+
 
 
 // Tạo tour mới
