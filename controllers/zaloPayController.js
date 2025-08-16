@@ -21,7 +21,9 @@ exports.createZaloPayOrder = async (req, res) => {
         }
 
         // app_trans_id phải unique => dùng timestamp
-        const app_trans_id = `${Date.now()}`;
+        const date = new Date();
+        const yymmdd = date.toISOString().slice(2, 10).replace(/-/g, ""); // "250816"
+        const app_trans_id = `${yymmdd}_${date.getTime()}`;
 
         // Dữ liệu gửi lên ZaloPay
         const order = {
@@ -32,7 +34,8 @@ exports.createZaloPayOrder = async (req, res) => {
             amount,
             item: JSON.stringify([]),
             embed_data: JSON.stringify({ booking_id }),
-            description: description || `Thanh toán booking #${booking._id}`,
+          description: description || `ZaloPay demo - Thanh toán booking #${booking._id}`,
+
             bank_code: "zalopayapp",
             callback_url: "http://160.250.246.76:3000/api/zalo-pay/callback",
         };
