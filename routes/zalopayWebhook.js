@@ -85,8 +85,10 @@ router.post('/zalopay-webhook', express.json(), async (req, res) => {
         await transaction.save();
         console.log("💾 Transaction lưu thành công:", transaction);
 
-        // ✅ Update booking
         booking.status = payment_status;
+        booking.transaction_id = transaction._id;
+        booking.last_update = Date.now();
+        await booking.save();
         await booking.save();
         console.log("💾 Booking cập nhật thành công:", booking);
 
