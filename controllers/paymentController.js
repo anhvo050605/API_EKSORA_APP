@@ -79,7 +79,7 @@ exports.createPaymentLink = async (req, res) => {
     // Giới hạn mô tả 25 ký tự
     const safeDescription = typeof description === 'string'
       ? description.substring(0, 25)
-      : 'Thanh toán đơn hàng';
+      : 'EKSORA thanh toán';
 
     const expiredAt = Math.floor(Date.now() / 1000) + 15 * 60;
 
