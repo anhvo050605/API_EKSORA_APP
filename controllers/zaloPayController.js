@@ -38,6 +38,7 @@ exports.createZaloPayOrder = async (req, res) => {
       description: description || `Thanh toán booking #${booking._id}`,
       bank_code: "zalopayapp",
       callback_url: "http://160.250.246.76:3000/api/zalo-pay/callback", // URL backend thật
+      redirect_url: 'http://160.250.246.76:3000/return',
     };
 
     // ✅ Tạo MAC bằng key1
