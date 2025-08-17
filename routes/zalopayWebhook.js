@@ -19,8 +19,6 @@ router.post('/zalopay-webhook', express.json(), async (req, res) => {
         }
 
         // ✅ Verify MAC
-        // const key1 = process.env.ZALO_KEY1;
-        // const genMac = crypto.createHmac('sha256', key1).update(data).digest('hex');
         const key2 = process.env.ZALO_KEY2;
         const genMac = crypto.createHmac('sha256', key2).update(data).digest('hex');
         console.log("🔑 MAC sinh ra:", genMac);
@@ -32,12 +30,12 @@ router.post('/zalopay-webhook', express.json(), async (req, res) => {
         }
 
         // ✅ Parse JSON trong field data
-        // ✅ Parse JSON trong field data
         const dataJson = JSON.parse(data);
         console.log("📩 Callback từ ZaloPay:", JSON.stringify(dataJson, null, 2));
 
         const amount = dataJson.amount;
         const status = dataJson.status;
+        console.log("📊 Status từ ZaloPay:", status);
 
         // ✅ bookingId phải lấy từ embed_data
         const { booking_id } = JSON.parse(dataJson.embed_data);
@@ -48,8 +46,7 @@ router.post('/zalopay-webhook', express.json(), async (req, res) => {
             console.error("❌ Không tìm thấy booking:", booking_id);
             return res.json({ return_code: 1, return_message: "Booking not found" });
         }
-
-        console.log("📚 Booking tìm thấy:", booking);
+        console.log("📚 Booking tìm thấy (trước update):", JSON.stringify(booking, null, 2));
 
         // ✅ Xác định trạng thái từ callback ZaloPay
         let payment_status;
@@ -83,23 +80,27 @@ router.post('/zalopay-webhook', express.json(), async (req, res) => {
             transaction.note = payment_status;
         }
         await transaction.save();
-        console.log("💾 Transaction lưu thành công:", transaction);
+        console.log("💾 Transaction lưu thành công:", JSON.stringify(transaction, null, 2));
 
+        console.log("✏️ Cập nhật booking...");
         booking.status = payment_status;
         booking.transaction_id = transaction._id;
         booking.last_update = Date.now();
         await booking.save();
-        await booking.save();
-        console.log("💾 Booking cập nhật thành công:", booking);
+        console.log("💾 Booking cập nhật thành công (sau update):", JSON.stringify(booking, null, 2));
 
         // Gửi email
         try {
             if (payment_status === 'paid' && booking.email) {
+                console.log(`📧 Đang gửi email xác nhận tới ${booking.email}`);
                 await sendBookingConfirmation(booking.email, booking, true);
-                console.log(`📧 Email XÁC NHẬN gửi tới ${booking.email}`);
+                console.log(`📧 Email XÁC NHẬN đã gửi thành công!`);
             } else if (payment_status === 'failed' && booking.email) {
+                console.log(`📧 Đang gửi email thất bại tới ${booking.email}`);
                 await sendBookingFailed(booking.email, booking);
-                console.log(`📧 Email THẤT BẠI gửi tới ${booking.email}`);
+                console.log(`📧 Email THẤT BẠI đã gửi thành công!`);
+            } else {
+                console.log("📧 Không gửi email (không có email hoặc trạng thái pending)");
             }
         } catch (emailErr) {
             console.error("❌ Lỗi gửi email:", emailErr.message);
