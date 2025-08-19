@@ -32,6 +32,7 @@ const tourServiceRoutes = require('./routes/tourServiceRoutes');
 const forgotPasswordRoute = require('./routes/forgotPasswordRoute');
 const userVoucherRoutes = require('./routes/userVoucherRoutes');
 const webhookRoutes = require('./routes/webhookRoutes');
+const zaloPaywebhookRoutes = require('./routes/zalopayWebhook');
 const paymentRoutes = require('./routes/paymentRoutes');
 const locationRoutes = require('./routes/locationRoutes');
 const suggestionRoute = require('./routes/suggestionRoute');
@@ -160,6 +161,7 @@ app.use('/api/password', forgotPasswordRoute);
 app.use('/api/user-vouchers', userVoucherRoutes);
 
 app.use('/api', webhookRoutes);
+app.use('/api', zaloPaywebhookRoutes);
 
 app.use('/api/location', locationRoutes);
 
