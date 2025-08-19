@@ -41,7 +41,7 @@ const facebookRoutes = require('./routes/facebookRoutes');
 const shareRoutes = require('./routes/shareRoutes');
 const googleRoutes = require('./routes/googleRoutes');
 const zaloPayRoutes = require("./routes/zaloPayRoutes");
-const zaloWebhook = require('./routes/zalopayWebhook');
+// const zaloWebhook = require('./routes/zalopayWebhook');
 
 
 
@@ -173,7 +173,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/share', shareRoutes);
 app.use('/', shareRoutes); 
 app.use("/api/zalo-pay", zaloPayRoutes);
-app.use('/api/payment', zaloWebhook);
+// app.use('/api/payment', zaloWebhook);
 
 // ✅ DI CHUYỂN GOOGLE ROUTES LÊN TRƯỚC FACEBOOK ROUTES
 app.use('/api', googleRoutes);
