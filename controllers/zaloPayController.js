@@ -98,14 +98,12 @@ exports.queryZaloPayOrder = async (req, res) => {
     if (!appTransId) {
       return res.status(400).json({ error: "Missing appTransId" });
     }
-
     const appId = ZALOPAY_APP_ID;
     const key1 = ZALOPAY_KEY1;
 
     // ✅ ZaloPay yêu cầu mac = HMAC(appid|apptransid|key1)
     const data = `${appId}|${appTransId}|${key1}`;
     const mac = crypto.createHmac("sha256", key1).update(data).digest("hex");
-
     const response = await axios.post(
       "https://sb-openapi.zalopay.vn/v2/query",
       {
@@ -114,7 +112,6 @@ exports.queryZaloPayOrder = async (req, res) => {
         mac,
       }
     );
-
     return res.json(response.data);
   } catch (error) {
     console.error("❌ Query ZaloPay error:", error.response?.data || error.message);
