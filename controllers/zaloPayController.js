@@ -74,9 +74,9 @@ exports.createZaloPayOrder = async (req, res) => {
 
     return res.status(200).json({
       booking_id,
-      order_code: app_trans_id,
+      appTransId: app_trans_id, // 👈 đổi tên key cho chuẩn
       zp_trans_token: response.data.zp_trans_token,
-      zalo_url: response.data.order_url || response.data.payment_url,
+      checkoutUrl: response.data.order_url || response.data.payment_url, // 👈 đổi cho trùng với frontend
       raw: response.data,
     });
   } catch (err) {
