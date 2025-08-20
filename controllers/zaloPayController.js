@@ -14,6 +14,7 @@ const {
 // ---------------- CREATE ORDER ----------------
 exports.createZaloPayOrder = async (req, res) => {
   try {
+    console.log(">>> AppId đang sử dụng:", ZALOPAY_APP_ID);
     const { amount, description, booking_id } = req.body;
 
     if (!amount || !booking_id) {
