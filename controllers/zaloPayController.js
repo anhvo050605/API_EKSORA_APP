@@ -102,6 +102,10 @@ exports.queryZaloPayOrder = async (req, res) => {
     const appId = ZALOPAY_APP_ID;
     const key1 = ZALOPAY_KEY1;
 
+     console.log("👉 appId đang dùng:", appId);
+    console.log("👉 key1 đang dùng:", key1);
+    console.log("👉 dataString để tạo mac:", `${appId}|${appTransId}|${key1}`);
+
     
     const data = `${appId}|${appTransId}|${key1}`;
     const mac = crypto.createHmac("sha256", key1).update(data).digest("hex");
