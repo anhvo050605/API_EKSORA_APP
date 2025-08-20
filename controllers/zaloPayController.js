@@ -11,10 +11,11 @@ const {
   ZALOPAY_ENDPOINT
 } = process.env;
 
-// --- CREATE ORDER ---
+// ---------------- CREATE ORDER ----------------
 exports.createZaloPayOrder = async (req, res) => {
   try {
     const { amount, description, booking_id } = req.body;
+
     if (!amount || !booking_id) {
       return res.status(400).json({ message: "Thiếu dữ liệu thanh toán" });
     }
@@ -24,11 +25,11 @@ exports.createZaloPayOrder = async (req, res) => {
 
     const date = new Date();
     const yymmdd = date.toISOString().slice(2, 10).replace(/-/g, "");
-    const appTransId = `${yymmdd}_${date.getTime()}`; // ✅ Chuẩn tên camelCase
+    const app_trans_id = `${yymmdd}_${date.getTime()}`;
 
     const order = {
       app_id: ZALOPAY_APP_ID,
-      app_trans_id: appTransId,
+      app_trans_id,
       app_user: booking.fullName || "guest",
       app_time: Date.now(),
       amount,
@@ -36,19 +37,25 @@ exports.createZaloPayOrder = async (req, res) => {
       embed_data: JSON.stringify({ booking_id }),
       description: description || `Thanh toán booking #${booking._id}`,
       bank_code: "zalopayapp",
-      callback_url: "http://160.250.246.76:3000/api/zalopay-webhook",
-      redirect_url: "http://160.250.246.76:3000/return",
+      callback_url: "http://160.250.246.76:3000/api/zalopay-webhook", // URL backend thật
+      redirect_url: 'http://160.250.246.76:3000/return',
     };
 
-    // Tạo MAC
-    const macData = `${order.app_id}|${order.app_trans_id}|${order.app_user}|${order.amount}|${order.app_time}|${order.embed_data}|${order.item}`;
-    order.mac = crypto.createHmac("sha256", ZALOPAY_KEY1).update(macData).digest("hex");
+    // ✅ Tạo MAC bằng key1
+    const data =
+      `${order.app_id}|${order.app_trans_id}|${order.app_user}|${order.amount}|${order.app_time}|${order.embed_data}|${order.item}`;
+    order.mac = crypto.createHmac("sha256", ZALOPAY_KEY1).update(data).digest("hex");
 
+    console.log("📌 Order gửi lên ZaloPay:", order);
+
+    // ✅ Gọi API ZaloPay
     const response = await axios.post(
       `${ZALOPAY_ENDPOINT}/v2/create`,
       qs.stringify(order),
       { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
     );
+
+    console.log("📌 ZaloPay response:", response.data);
 
     // Lưu transaction pending
     const newTransaction = new Transaction({
@@ -56,24 +63,29 @@ exports.createZaloPayOrder = async (req, res) => {
       amount,
       payment_method: "zalopay",
       provider: "zalopay",
-      order_code: appTransId,
+      order_code: app_trans_id,
       status: "pending",
     });
     await newTransaction.save();
 
     booking.transaction_id = newTransaction._id;
-    booking.order_code = appTransId;
+    booking.order_code = app_trans_id;
     await booking.save();
 
     return res.status(200).json({
       booking_id,
-      appTransId, // ✅ key camelCase trùng frontend
-      zpTransToken: response.data.zp_trans_token,
-      checkoutUrl: response.data.order_url || response.data.payment_url,
+      appTransId: app_trans_id, // 👈 đổi tên key cho chuẩn
+      zp_trans_token: response.data.zp_trans_token,
+      checkoutUrl: response.data.order_url || response.data.payment_url, // 👈 đổi cho trùng với frontend
       raw: response.data,
     });
   } catch (err) {
-    console.error("❌ Lỗi tạo đơn hàng ZaloPay:", err.response?.data || err.message);
+    console.error("❌ Lỗi tạo đơn hàng ZaloPay");
+
+    if (err.response) {
+      console.error("🔴 Response data:", err.response.data);
+    }
+
     return res.status(500).json({
       message: "Lỗi tạo đơn hàng ZaloPay",
       error: err.response?.data || err.message,
@@ -81,24 +93,29 @@ exports.createZaloPayOrder = async (req, res) => {
   }
 };
 
-// --- QUERY ORDER ---
 exports.queryZaloPayOrder = async (req, res) => {
   try {
-    const appTransId = req.query.appTransId;
-    if (!appTransId) return res.status(400).json({ error: "Missing appTransId" });
+    const apptransid = req.query.appTransId; // 👈 client gửi lên
+    const appid = process.env.ZALOPAY_APPID;
+    const key1 = process.env.ZALOPAY_KEY1;
 
-    const mac = crypto.createHmac("sha256", ZALOPAY_KEY1)
-                      .update(`${ZALOPAY_APP_ID}|${appTransId}|${ZALOPAY_KEY1}`)
-                      .digest("hex");
+    if (!apptransid) {
+      return res.status(400).json({ error: "Missing appTransId" });
+    }
 
-    const response = await axios.post(
-      `${ZALOPAY_ENDPOINT}/v2/query`,
-      { appid: ZALOPAY_APP_ID, apptransid: appTransId, mac }
-    );
+    // ZaloPay yêu cầu mac = HMAC(appid|apptransid|key1)
+    const data = `${appid}|${apptransid}|${key1}`;
+    const mac = crypto.createHmac("sha256", key1).update(data).digest("hex");
+
+    const response = await axios.post("https://sb-openapi.zalopay.vn/v2/query", {
+      appid,
+      apptransid,
+      mac
+    });
 
     return res.json(response.data);
-  } catch (err) {
-    console.error("❌ Query ZaloPay error:", err.response?.data || err.message);
+  } catch (error) {
+    console.error("❌ Query ZaloPay error:", error.response?.data || error.message);
     res.status(500).json({ error: "Query failed" });
   }
 };
