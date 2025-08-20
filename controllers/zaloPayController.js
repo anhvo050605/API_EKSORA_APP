@@ -108,11 +108,12 @@ exports.queryZaloPayOrder = async (req, res) => {
 
     const response = await axios.post(
       "https://sb-openapi.zalopay.vn/v2/query",
-      {
+      qs.stringify({
         appid: appId,
-        apptransId: appTransId,
+        apptransid: appTransId, // chữ thường đúng theo doc
         mac,
-      }
+      }),
+      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
     );
 
     return res.json(response.data);
