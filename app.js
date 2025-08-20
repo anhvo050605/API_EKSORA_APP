@@ -175,7 +175,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/share', shareRoutes);
 app.use('/', shareRoutes); 
 app.use("/api/zalo-pay", zaloPayRoutes);
-app.use('/api', zaloWebhook);
+// app.use('/api/payment', zaloWebhook);
 
 // ✅ DI CHUYỂN GOOGLE ROUTES LÊN TRƯỚC FACEBOOK ROUTES
 app.use('/api', googleRoutes);
