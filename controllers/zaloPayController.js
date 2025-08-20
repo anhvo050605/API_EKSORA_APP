@@ -37,14 +37,17 @@ exports.createZaloPayOrder = async (req, res) => {
       embed_data: JSON.stringify({ booking_id }),
       description: description || `Thanh toán booking #${booking._id}`,
       bank_code: "zalopayapp",
-      callback_url: "http://160.250.246.76:3000/api/zalopay-webhook", // URL backend thật
-      redirect_url: 'http://160.250.246.76:3000/return',
+      callback_url: "http://160.250.246.76:3000/api/zalopay-webhook",
+      redirect_url: "http://160.250.246.76:3000/return",
     };
 
     // ✅ Tạo MAC bằng key1
     const data =
       `${order.app_id}|${order.app_trans_id}|${order.app_user}|${order.amount}|${order.app_time}|${order.embed_data}|${order.item}`;
-    order.mac = crypto.createHmac("sha256", ZALOPAY_KEY1).update(data).digest("hex");
+    order.mac = crypto
+      .createHmac("sha256", ZALOPAY_KEY1)
+      .update(data)
+      .digest("hex");
 
     console.log("📌 Order gửi lên ZaloPay:", order);
 
@@ -72,20 +75,19 @@ exports.createZaloPayOrder = async (req, res) => {
     booking.order_code = app_trans_id;
     await booking.save();
 
+    // ✅ Trả về đúng key frontend cần
     return res.status(200).json({
       booking_id,
-      appTransId: app_trans_id, // 👈 đổi tên key cho chuẩn
-      zp_trans_token: response.data.zp_trans_token,
-      checkoutUrl: response.data.order_url || response.data.payment_url, // 👈 đổi cho trùng với frontend
+      appTransId: app_trans_id, // 👈 tên trùng frontend
+      zpTransToken: response.data.zp_trans_token,
+      checkoutUrl: response.data.order_url || response.data.payment_url, // 👈 tên trùng frontend
       raw: response.data,
     });
   } catch (err) {
     console.error("❌ Lỗi tạo đơn hàng ZaloPay");
-
     if (err.response) {
       console.error("🔴 Response data:", err.response.data);
     }
-
     return res.status(500).json({
       message: "Lỗi tạo đơn hàng ZaloPay",
       error: err.response?.data || err.message,
@@ -93,25 +95,29 @@ exports.createZaloPayOrder = async (req, res) => {
   }
 };
 
+// ---------------- QUERY ORDER ----------------
 exports.queryZaloPayOrder = async (req, res) => {
   try {
-    const apptransid = req.query.appTransId; // 👈 client gửi lên
-    const appid = process.env.ZALOPAY_APPID;
-    const key1 = process.env.ZALOPAY_KEY1;
-
-    if (!apptransid) {
+    const appTransId = req.query.appTransId; // 👈 client gửi lên
+    if (!appTransId) {
       return res.status(400).json({ error: "Missing appTransId" });
     }
 
-    // ZaloPay yêu cầu mac = HMAC(appid|apptransid|key1)
-    const data = `${appid}|${apptransid}|${key1}`;
+    const appId = ZALOPAY_APP_ID;
+    const key1 = ZALOPAY_KEY1;
+
+    // ✅ ZaloPay yêu cầu mac = HMAC(appid|apptransid|key1)
+    const data = `${appId}|${appTransId}|${key1}`;
     const mac = crypto.createHmac("sha256", key1).update(data).digest("hex");
 
-    const response = await axios.post("https://sb-openapi.zalopay.vn/v2/query", {
-      appid,
-      apptransid,
-      mac
-    });
+    const response = await axios.post(
+      "https://sb-openapi.zalopay.vn/v2/query",
+      {
+        appid: appId,
+        apptransid: appTransId,
+        mac,
+      }
+    );
 
     return res.json(response.data);
   } catch (error) {
