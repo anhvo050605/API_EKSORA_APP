@@ -37,7 +37,7 @@ exports.createZaloPayOrder = async (req, res) => {
       embed_data: JSON.stringify({ booking_id }),
       description: description || `Thanh toán booking #${booking._id}`,
       bank_code: "zalopayapp",
-      callback_url: "http://160.250.246.76:3000/api/zalopay-webhook", // URL backend thật
+      callback_url: "http://160.250.246.76:3000/api/zalo-pay/zalopay-webhook", // URL backend thật
       redirect_url: 'http://160.250.246.76:3000/return',
     };
 
@@ -102,7 +102,7 @@ exports.queryZaloPayOrder = async (req, res) => {
     const appId = ZALOPAY_APP_ID;
     const key1 = ZALOPAY_KEY1;
 
-    // ✅ ZaloPay yêu cầu mac = HMAC(appid|apptransid|key1)
+    
     const data = `${appId}|${appTransId}|${key1}`;
     const mac = crypto.createHmac("sha256", key1).update(data).digest("hex");
 
@@ -110,7 +110,7 @@ exports.queryZaloPayOrder = async (req, res) => {
       "https://sb-openapi.zalopay.vn/v2/query",
       qs.stringify({
         appid: appId,
-        apptransid: appTransId, // chữ thường đúng theo doc
+        apptransid: appTransId, 
         mac,
       }),
       { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
@@ -120,6 +120,33 @@ exports.queryZaloPayOrder = async (req, res) => {
   } catch (error) {
     console.error("❌ Query ZaloPay error:", error.response?.data || error.message);
     res.status(500).json({ error: "Query failed" });
+  }
+};
+exports.webhookZaloPay = async (req, res) => {
+  try {
+    const data = req.body;
+    console.log("📥 ZaloPay callback:", data);
+
+    // Update transaction
+    const { app_trans_id, return_code } = data;
+    if (return_code === 1) {
+      // Thanh toán thành công
+      await Transaction.findOneAndUpdate(
+        { order_code: app_trans_id },
+        { status: "success" }
+      );
+      await Booking.findOneAndUpdate(
+        { order_code: app_trans_id },
+        { status: "paid" }
+      );
+    }
+
+    // ZaloPay yêu cầu phải trả đúng chuỗi "success"
+    res.send("success");
+  } catch (err) {
+    console.error("Callback error:", err);
+    // vẫn phải trả success để tránh bị retry
+    res.send("success");
   }
 };
 
