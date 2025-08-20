@@ -93,59 +93,29 @@ exports.createZaloPayOrder = async (req, res) => {
   }
 };
 
-// ---------------- CALLBACK ----------------
-// ---------------- CALLBACK ----------------
-exports.zaloPayCallback = async (req, res) => {
+exports.queryZaloPayOrder = async (req, res) => {
   try {
-    console.log("📩 Webhook callback:", req.body);
+    const apptransid = req.query.appTransId; // 👈 client gửi lên
+    const appid = process.env.ZALOPAY_APPID;
+    const key1 = process.env.ZALOPAY_KEY1;
 
-    const { data: dataStr, mac: reqMac } = req.body;
-
-    if (!dataStr || !reqMac) {
-      return res.status(400).json({ return_code: -1, return_message: "Thiếu data hoặc mac" });
+    if (!apptransid) {
+      return res.status(400).json({ error: "Missing appTransId" });
     }
 
-    // ✅ Verify MAC bằng key2
-    const mac = crypto.createHmac("sha256", ZALOPAY_KEY2).update(dataStr).digest("hex");
-    if (reqMac !== mac) {
-      console.warn("❌ MAC không hợp lệ");
-      return res.status(400).json({ return_code: -1, return_message: "MAC không hợp lệ" });
-    }
+    // ZaloPay yêu cầu mac = HMAC(appid|apptransid|key1)
+    const data = `${appid}|${apptransid}|${key1}`;
+    const mac = crypto.createHmac("sha256", key1).update(data).digest("hex");
 
-    const dataJson = JSON.parse(dataStr);
-    console.log("📊 Data JSON parse:", dataJson);
+    const response = await axios.post("https://sb-openapi.zalopay.vn/v2/query", {
+      appid,
+      apptransid,
+      mac
+    });
 
-    const { booking_id } = JSON.parse(dataJson.embed_data);
-    const app_trans_id = dataJson.app_trans_id;
-    const status = dataJson.status;
-
-    console.log("🔑 booking_id:", booking_id);
-    console.log("🔑 app_trans_id:", app_trans_id);
-    console.log("📊 status từ Zalo:", status);
-
-    let payment_status;
-    if (status === 1) {
-      payment_status = "paid";
-    } else if (status === -1 || status === 0) {
-      payment_status = "failed";
-    } else {
-      payment_status = "pending";
-    }
-
-    // ✅ Update cả Booking và Transaction
-    await Booking.findByIdAndUpdate(booking_id, { status: payment_status });
-    await Transaction.findOneAndUpdate(
-      { order_code: app_trans_id },
-      { status: payment_status }
-    );
-
-    console.log(`💾 Booking ${booking_id} -> ${payment_status}`);
-    console.log(`💾 Transaction ${app_trans_id} -> ${payment_status}`);
-
-    return res.json({ return_code: 1, return_message: "success" });
-  } catch (err) {
-    console.error("❌ Callback error:", err.message);
-    return res.json({ return_code: 0, return_message: "server error" });
+    return res.json(response.data);
+  } catch (error) {
+    console.error("❌ Query ZaloPay error:", error.response?.data || error.message);
+    res.status(500).json({ error: "Query failed" });
   }
 };
-
