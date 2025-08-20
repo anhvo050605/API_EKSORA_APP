@@ -37,7 +37,7 @@ exports.createZaloPayOrder = async (req, res) => {
       embed_data: JSON.stringify({ booking_id }),
       description: description || `Thanh toán booking #${booking._id}`,
       bank_code: "zalopayapp",
-      callback_url: "http://160.250.246.76:3000/api/zalo-pay/zalopay-webhook", // URL backend thật
+      callback_url: " https://7a2ffa79f0a7.ngrok-free.app/api/zalo-pay/zalopay-webhook", // URL backend thật
       redirect_url: 'http://160.250.246.76:3000/return',
     };
 
