@@ -94,25 +94,46 @@ exports.createZaloPayOrder = async (req, res) => {
 };
 exports.queryZaloPayOrder = async (req, res) => {
   try {
-    const appTransId = req.query.appTransId; // 👈 client gửi lên
+    const appTransId = req.query.appTransId; 
     if (!appTransId) {
       return res.status(400).json({ error: "Missing appTransId" });
     }
-    const appId = ZALOPAY_APP_ID;
-    const key1 = ZALOPAY_KEY1;
 
-    // ✅ ZaloPay yêu cầu mac = HMAC(appid|apptransid|key1)
+    const appId = process.env.ZALOPAY_APP_ID;
+    const key1 = process.env.ZALOPAY_KEY1;
+
+    // Tạo mac
     const data = `${appId}|${appTransId}|${key1}`;
     const mac = crypto.createHmac("sha256", key1).update(data).digest("hex");
-    const response = await axios.post(
-      "https://sb-openapi.zalopay.vn/v2/query",
-      {
-        appid: appId,
-        apptransId: appTransId,
-        mac,
+
+    // Gọi ZaloPay API
+    const response = await axios.post("https://sb-openapi.zalopay.vn/v2/query", {
+      appid: appId,
+      apptransid: appTransId,
+      mac,
+    });
+
+    const result = response.data;
+
+    // Nếu thanh toán thành công
+    if (result.return_code === 1) {
+      // Cập nhật booking có appTransId tương ứng
+      const booking = await Booking.findOneAndUpdate(
+        { appTransId }, // trường lưu appTransId trong Booking
+        { status: "paid" },
+        { new: true }
+      );
+
+      if (!booking) {
+        return res.status(404).json({ error: "Booking not found" });
       }
-    );
-    return res.json(response.data);
+
+      return res.json({ message: "Payment confirmed and booking updated", booking });
+    }
+
+    // Nếu chưa thành công
+    res.json({ message: "Payment not completed", result });
+
   } catch (error) {
     console.error("❌ Query ZaloPay error:", error.response?.data || error.message);
     res.status(500).json({ error: "Query failed" });
