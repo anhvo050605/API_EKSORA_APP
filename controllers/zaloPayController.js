@@ -40,7 +40,7 @@ exports.createZaloPayOrder = async (req, res) => {
       embed_data: JSON.stringify({ booking_id }),
       description: description || `Thanh toán booking #${booking._id}`,
       bank_code: "zalopayapp",
-      callback_url: "https://7a2ffa79f0a7.ngrok-free.app/api/zalo-pay/zalopay-webhook",
+      callback_url: "https://7a2ffa79f0a7.ngrok-free.app/api/zalo-pay/zalopay-webhook", 
       redirect_url: "http://160.250.246.76:3000/return",
     };
 
@@ -96,40 +96,41 @@ exports.createZaloPayOrder = async (req, res) => {
 // ---------------- QUERY ORDER ----------------
 exports.queryZaloPayOrder = async (req, res) => {
   try {
-    const appTransId = req.query.appTransId;
+    const appTransId = req.query.appTransId; 
     if (!appTransId) {
       return res.status(400).json({ error: "Missing appTransId" });
     }
 
     console.log("📌 [QUERY] app_trans_id =", appTransId);
 
-    const app_id = Number(ZALOPAY_APP_ID);
-    const app_trans_id = appTransId;
+    const appId = ZALOPAY_APP_ID;
+    const key1 = ZALOPAY_KEY1;
 
-    const macData = `${app_id}|${app_trans_id}|${ZALOPAY_KEY1}`;
-    const mac = crypto.createHmac("sha256", ZALOPAY_KEY1).update(macData).digest("hex");
+    // ✅ Công thức chuẩn: appid|apptransid|key1
+    const data = `${appId}|${appTransId}|${key1}`;
+    const mac = crypto.createHmac("sha256", key1).update(data).digest("hex");
 
-    console.log("👉 Query data:", macData);
+    console.log("👉 Query data:", data);
     console.log("👉 MAC:", mac);
 
-    const body = qs.stringify({
-      app_id,          // ✅ đúng key theo doc
-      app_trans_id,    // ✅ đúng key theo doc
-      mac,
-    });
-
-    const { data: zp } = await axios.post(
+    const response = await axios.post(
       `${ZALOPAY_ENDPOINT}/v2/query`,
-      body,
+      qs.stringify({
+        appid: appId,
+        apptransid: appTransId,
+        mac,
+      }),
       { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
     );
 
-    return res.json(zp);
+    console.log("📌 [QUERY RESULT]:", response.data);
+    return res.json(response.data);
   } catch (error) {
     console.error("❌ Query ZaloPay error:", error.response?.data || error.message);
-    return res.status(500).json({ error: "Query failed" });
+    res.status(500).json({ error: "Query failed", detail: error.response?.data || error.message });
   }
 };
+
 
 // ---------------- WEBHOOK ----------------
 exports.webhookZaloPay = async (req, res) => {
