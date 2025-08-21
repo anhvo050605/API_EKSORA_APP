@@ -93,6 +93,7 @@ exports.createZaloPayOrder = async (req, res) => {
 };
 
 // ---------------- QUERY ORDER ----------------
+// ---------------- QUERY ORDER ----------------
 exports.queryZaloPayOrder = async (req, res) => {
   try {
     const appTransId = req.query.appTransId; 
@@ -105,6 +106,7 @@ exports.queryZaloPayOrder = async (req, res) => {
     const appId = ZALOPAY_APP_ID;
     const key1 = ZALOPAY_KEY1;
 
+    // ✅ Công thức chuẩn: appid|apptransid|key1
     const data = `${appId}|${appTransId}|${key1}`;
     const mac = crypto.createHmac("sha256", key1).update(data).digest("hex");
 
@@ -121,12 +123,14 @@ exports.queryZaloPayOrder = async (req, res) => {
       { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
     );
 
+    console.log("📌 [QUERY RESULT]:", response.data);
     return res.json(response.data);
   } catch (error) {
     console.error("❌ Query ZaloPay error:", error.response?.data || error.message);
-    res.status(500).json({ error: "Query failed" });
+    res.status(500).json({ error: "Query failed", detail: error.response?.data || error.message });
   }
 };
+
 
 // ---------------- WEBHOOK ----------------
 exports.webhookZaloPay = async (req, res) => {
