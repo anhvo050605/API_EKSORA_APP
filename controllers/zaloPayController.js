@@ -116,8 +116,8 @@ exports.queryZaloPayOrder = async (req, res) => {
     const response = await axios.post(
       `${ZALOPAY_ENDPOINT}/v2/query`,
       qs.stringify({
-        appid: appId,
-        apptransid: appTransId,
+        app_id: appId,
+        app_trans_id: appTransId,
         mac,
       }),
       { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
