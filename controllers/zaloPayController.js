@@ -40,7 +40,7 @@ exports.createZaloPayOrder = async (req, res) => {
       embed_data: JSON.stringify({ booking_id }),
       description: description || `Thanh toán booking #${booking._id}`,
       bank_code: "zalopayapp",
-      callback_url: "https://7a2ffa79f0a7.ngrok-free.app/api/zalo-pay/zalopay-webhook", 
+      callback_url: "https://7a2ffa79f0a7.ngrok-free.app/api/zalo-pay/zalopay-webhook",
       redirect_url: "http://160.250.246.76:3000/return",
     };
 
@@ -96,7 +96,7 @@ exports.createZaloPayOrder = async (req, res) => {
 // ---------------- QUERY ORDER ----------------
 exports.queryZaloPayOrder = async (req, res) => {
   try {
-    const appTransId = req.query.appTransId; 
+    const appTransId = req.query.appTransId;
     if (!appTransId) {
       return res.status(400).json({ error: "Missing appTransId" });
     }
@@ -116,10 +116,10 @@ exports.queryZaloPayOrder = async (req, res) => {
     const response = await axios.post(
       `${ZALOPAY_ENDPOINT}/v2/query`,
       qs.stringify({
-        appid: appId,
-        apptransid: appTransId,
-        mac,
-      }),
+        app_id: appId,            // ✅ đúng key
+        app_trans_id: appTransId, // ✅ đúng key
+        mac,                      // ✅ đúng key
+      })
       { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
     );
 
