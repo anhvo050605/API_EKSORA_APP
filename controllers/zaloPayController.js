@@ -103,34 +103,33 @@ exports.queryZaloPayOrder = async (req, res) => {
 
     console.log("📌 [QUERY] app_trans_id =", appTransId);
 
-    const appId = ZALOPAY_APP_ID;
-    const key1 = ZALOPAY_KEY1;
+    const app_id = Number(ZALOPAY_APP_ID);
+    const app_trans_id = appTransId;
 
-    // ✅ Công thức chuẩn: appid|apptransid|key1
-    const data = `${appId}|${appTransId}|${key1}`;
-    const mac = crypto.createHmac("sha256", key1).update(data).digest("hex");
+    const macData = `${app_id}|${app_trans_id}|${ZALOPAY_KEY1}`;
+    const mac = crypto.createHmac("sha256", ZALOPAY_KEY1).update(macData).digest("hex");
 
-    console.log("👉 Query data:", data);
+    console.log("👉 Query data:", macData);
     console.log("👉 MAC:", mac);
 
-    const response = await axios.post(
+    const body = qs.stringify({
+      app_id,          // ✅ đúng key theo doc
+      app_trans_id,    // ✅ đúng key theo doc
+      mac,
+    });
+
+    const { data: zp } = await axios.post(
       `${ZALOPAY_ENDPOINT}/v2/query`,
-      qs.stringify({
-        app_id: appId,            // ✅ đúng key
-        app_trans_id: appTransId, // ✅ đúng key
-        mac,                      // ✅ đúng key
-      })
+      body,
       { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
     );
 
-    console.log("📌 [QUERY RESULT]:", response.data);
-    return res.json(response.data);
+    return res.json(zp);
   } catch (error) {
     console.error("❌ Query ZaloPay error:", error.response?.data || error.message);
-    res.status(500).json({ error: "Query failed", detail: error.response?.data || error.message });
+    return res.status(500).json({ error: "Query failed" });
   }
 };
-
 
 // ---------------- WEBHOOK ----------------
 exports.webhookZaloPay = async (req, res) => {
