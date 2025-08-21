@@ -124,6 +124,22 @@ exports.queryZaloPayOrder = async (req, res) => {
     );
 
     console.log("📌 [QUERY RESULT]:", response.data);
+
+    // ✅ Nếu thanh toán thành công thì cập nhật DB
+    if (response.data.return_code === 1 && response.data.sub_return_code === 1) {
+      console.log("✅ Thanh toán thành công, cập nhật trạng thái DB...");
+
+      await Transaction.findOneAndUpdate(
+        { order_code: appTransId },
+        { status: "success" }
+      );
+
+      await Booking.findOneAndUpdate(
+        { order_code: appTransId },
+        { status: "paid" }
+      );
+    }
+
     return res.json(response.data);
   } catch (error) {
     console.error("❌ Query ZaloPay error:", error.response?.data || error.message);
