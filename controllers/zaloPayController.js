@@ -26,7 +26,9 @@ exports.createZaloPayOrder = async (req, res) => {
 
     const date = new Date();
     const yymmdd = date.toISOString().slice(2, 10).replace(/-/g, "");
-    const app_trans_id = `${yymmdd}_${date.getTime()}`;
+    const app_trans_id = `${yymmdd}_${date.getTime()}`; // ✅ sinh app_trans_id
+
+    console.log("📌 [CREATE] app_trans_id =", app_trans_id);
 
     const order = {
       app_id: ZALOPAY_APP_ID,
@@ -38,18 +40,16 @@ exports.createZaloPayOrder = async (req, res) => {
       embed_data: JSON.stringify({ booking_id }),
       description: description || `Thanh toán booking #${booking._id}`,
       bank_code: "zalopayapp",
-      callback_url: "https://7a2ffa79f0a7.ngrok-free.app/api/zalo-pay/zalopay-webhook", // URL backend thật
-      redirect_url: 'http://160.250.246.76:3000/return',
+      callback_url: "https://7a2ffa79f0a7.ngrok-free.app/api/zalo-pay/zalopay-webhook", 
+      redirect_url: "http://160.250.246.76:3000/return",
     };
 
     // ✅ Tạo MAC bằng key1
-    const data =
-      `${order.app_id}|${order.app_trans_id}|${order.app_user}|${order.amount}|${order.app_time}|${order.embed_data}|${order.item}`;
+    const data = `${order.app_id}|${order.app_trans_id}|${order.app_user}|${order.amount}|${order.app_time}|${order.embed_data}|${order.item}`;
     order.mac = crypto.createHmac("sha256", ZALOPAY_KEY1).update(data).digest("hex");
 
     console.log("📌 Order gửi lên ZaloPay:", order);
 
-    // ✅ Gọi API ZaloPay
     const response = await axios.post(
       `${ZALOPAY_ENDPOINT}/v2/create`,
       qs.stringify(order),
@@ -82,40 +82,40 @@ exports.createZaloPayOrder = async (req, res) => {
     });
   } catch (err) {
     console.error("❌ Lỗi tạo đơn hàng ZaloPay");
-
     if (err.response) {
       console.error("🔴 Response data:", err.response.data);
     }
-
     return res.status(500).json({
       message: "Lỗi tạo đơn hàng ZaloPay",
       error: err.response?.data || err.message,
     });
   }
 };
+
+// ---------------- QUERY ORDER ----------------
 exports.queryZaloPayOrder = async (req, res) => {
   try {
-    const appTransId = req.query.appTransId; // 👈 client gửi lên
+    const appTransId = req.query.appTransId; 
     if (!appTransId) {
       return res.status(400).json({ error: "Missing appTransId" });
     }
 
+    console.log("📌 [QUERY] app_trans_id =", appTransId);
+
     const appId = ZALOPAY_APP_ID;
     const key1 = ZALOPAY_KEY1;
 
-     console.log("👉 appId đang dùng:", appId);
-    console.log("👉 key1 đang dùng:", key1);
-    console.log("👉 dataString để tạo mac:", `${appId}|${appTransId}|${key1}`);
-
-    
     const data = `${appId}|${appTransId}|${key1}`;
     const mac = crypto.createHmac("sha256", key1).update(data).digest("hex");
 
+    console.log("👉 Query data:", data);
+    console.log("👉 MAC:", mac);
+
     const response = await axios.post(
-      "https://sb-openapi.zalopay.vn/v2/query",
+      `${ZALOPAY_ENDPOINT}/v2/query`,
       qs.stringify({
         appid: appId,
-        apptransid: appTransId, 
+        apptransid: appTransId,
         mac,
       }),
       { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
@@ -127,15 +127,17 @@ exports.queryZaloPayOrder = async (req, res) => {
     res.status(500).json({ error: "Query failed" });
   }
 };
+
+// ---------------- WEBHOOK ----------------
 exports.webhookZaloPay = async (req, res) => {
   try {
     const data = req.body;
     console.log("📥 ZaloPay callback:", data);
 
-    // Update transaction
     const { app_trans_id, return_code } = data;
+    console.log("📌 [WEBHOOK] app_trans_id =", app_trans_id);
+
     if (return_code === 1) {
-      // Thanh toán thành công
       await Transaction.findOneAndUpdate(
         { order_code: app_trans_id },
         { status: "success" }
@@ -146,12 +148,9 @@ exports.webhookZaloPay = async (req, res) => {
       );
     }
 
-    // ZaloPay yêu cầu phải trả đúng chuỗi "success"
-    res.send("success");
+    res.send("success"); // ✅ luôn phải trả "success"
   } catch (err) {
     console.error("Callback error:", err);
-    // vẫn phải trả success để tránh bị retry
     res.send("success");
   }
 };
-
