@@ -131,7 +131,7 @@ exports.queryZaloPayOrder = async (req, res) => {
 
       await Transaction.findOneAndUpdate(
         { order_code: appTransId },
-        { status: "success" }
+        { status: "paid" }
       );
 
       await Booking.findOneAndUpdate(
