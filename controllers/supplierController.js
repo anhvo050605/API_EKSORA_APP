@@ -1,9 +1,11 @@
 const Supplier = require('../schema/supplierSchema');
-
+const User = require('../schema/userSchema');
 // Lấy tất cả đối tác
 exports.getAllSuppliers = async (req, res) => {
   try {
-    const suppliers = await Supplier.find();
+    const suppliers = await User.find({ role: "supplier" })
+      .select("-password -resetPasswordOTP -otp"); // loại bỏ field nhạy cảm
+    
     res.status(200).json(suppliers);
   } catch (error) {
     console.error("Lỗi lấy danh sách đối tác:", error);
@@ -11,13 +13,17 @@ exports.getAllSuppliers = async (req, res) => {
   }
 };
 
+
 // Lấy chi tiết 1 đối tác
 exports.getSupplierDetail = async (req, res) => {
   try {
-    const supplier = await Supplier.findById(req.params.id);
+    const supplier = await User.findOne({ _id: req.params.id, role: "supplier" })
+      .select("-password -resetPasswordOTP -otp"); 
+
     if (!supplier) {
       return res.status(404).json({ message: "Không tìm thấy đối tác" });
     }
+
     res.status(200).json(supplier);
   } catch (error) {
     console.error("Lỗi lấy chi tiết đối tác:", error);
