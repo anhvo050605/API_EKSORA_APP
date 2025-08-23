@@ -55,9 +55,9 @@ const getAllToursIncludeFree = async (req, res) => {
   try {
     const { cateID } = req.query;
 
-    const query = {
-      status: 'active', // ✅ Chỉ lấy tour đang active
-    };
+    // const query = {
+    //   status: 'active', // ✅ Chỉ lấy tour đang active
+    // };
     if (cateID) query.cateID = new mongoose.Types.ObjectId(cateID);
 
     const tours = await Tour.find(query)
