@@ -6,6 +6,7 @@ const OptionService = require('../schema/optionServiceSchema');
 const Review = require('../schema/reviewSchema');
 const Voucher = require('../schema/voucherSchema');
 const Booking = require('../schema/bookingSchema');
+const User = require('../schema/userSchema');       
 // Lấy tất cả tour
 const getAllTours = async (req, res) => {
   try {
