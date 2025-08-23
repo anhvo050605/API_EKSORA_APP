@@ -12,13 +12,19 @@ const getAllTours = async (req, res) => {
   try {
     const { cateID } = req.query;
 
-    const query = {
-      $and: [
-        { price: { $gt: 0 } },
-        { status: 'active' }
-      ]
-    };
-    if (cateID) query.cateID = new mongoose.Types.ObjectId(cateID);
+    // gom các điều kiện lại
+    const conditions = [
+      { price: { $gt: 0 } },
+      { status: 'active' }
+    ];
+
+    if (cateID) {
+      conditions.push({ cateID: new mongoose.Types.ObjectId(cateID) });
+    }
+
+    const query = { $and: conditions };
+
+    console.log("Điều kiện query:", JSON.stringify(query, null, 2));
 
     const tours = await Tour.find(query)
       .populate('cateID')
@@ -52,6 +58,7 @@ const getAllTours = async (req, res) => {
     res.status(500).json({ message: 'Lỗi máy chủ', error });
   }
 };
+
 
 const getAllToursIncludeFree = async (req, res) => {
   try {
