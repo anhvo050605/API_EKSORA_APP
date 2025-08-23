@@ -31,8 +31,10 @@ exports.getToursByLocation = async (req, res) => {
 
   try {
     let query = {
-      price: { $gt: 0 } 
+      price: { $gt: 0 },       // Chỉ lấy tour có giá > 0
+      status: 'active'         // Chỉ lấy tour đang active
     };
+
     if (cateID && cateID.toLowerCase() !== 'all') {
       query.cateID = new mongoose.Types.ObjectId(cateID);
     }
