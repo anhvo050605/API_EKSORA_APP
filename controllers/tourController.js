@@ -6,15 +6,17 @@ const OptionService = require('../schema/optionServiceSchema');
 const Review = require('../schema/reviewSchema');
 const Voucher = require('../schema/voucherSchema');
 const Booking = require('../schema/bookingSchema');
-const User = require('../schema/userSchema');       
+const User = require('../schema/userSchema');
 // Lấy tất cả tour
 const getAllTours = async (req, res) => {
   try {
     const { cateID } = req.query;
 
     const query = {
-      price: { $gt: 0 }, // Chỉ lấy tour có giá > 0
-      status: 'active',  // ✅ Chỉ lấy tour đang active
+      $and: [
+        { price: { $gt: 0 } },
+        { status: 'active' }
+      ]
     };
     if (cateID) query.cateID = new mongoose.Types.ObjectId(cateID);
 
@@ -56,7 +58,7 @@ const getAllToursIncludeFree = async (req, res) => {
     const { cateID } = req.query;
 
     const query = {
-    
+
     };
     if (cateID) query.cateID = new mongoose.Types.ObjectId(cateID);
 
@@ -434,5 +436,5 @@ module.exports = {
   getAvailableSlots,
   createTourBySupplier,
   approveTour,
-  
+
 };
