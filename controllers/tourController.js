@@ -360,7 +360,7 @@ const createTourBySupplier = async (req, res) => {
       opening_time,
       closing_time,
       max_tickets_per_day,
-      status: 'requested', // ✅ trạng thái mặc định chờ duyệt
+      status: 'active', // ✅ trạng thái mặc định chờ duyệt
       created_by: req.user.userId // ✅ lấy từ token
     });
 
