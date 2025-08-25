@@ -18,7 +18,7 @@ const tourSchema = new mongoose.Schema({
   status: {
     type: String,
     enum: ['requested', 'active', 'deactive'],
-    default: 'requested'
+    default: 'active'
   },
   created_by: {
     type: mongoose.Schema.Types.ObjectId,
